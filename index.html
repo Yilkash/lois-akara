@@ -6,7 +6,7 @@
 <title>Lois Akara</title>
 <meta name="description" content="Take orders, keep the queue and count the day's sales at Lois's akara spot." />
 <meta name="theme-color" content="#faf5ee" id="themeColor" />
-<script>try { if (localStorage.getItem("loisAkara.theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
+<script>try { if (localStorage.getItem("loisAkara.theme") === "dark") document.documentElement.dataset.theme = "dark"; const l = localStorage.getItem("loisAkara.look"); if (l) document.documentElement.dataset.look = l; } catch {}</script>
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" href="icon-192.png" />
 <link rel="apple-touch-icon" href="icon-192.png" />
@@ -29,6 +29,33 @@
     --hero-a: #3a2412; --hero-b: #5a3516; --hero-ink: #fff7ec;
     --scrim: rgba(0,0,0,.55);
     --shadow: none;
+  }
+  /* Colour styles (light mode). The default above is "warm". */
+  :root[data-look="green"]:not([data-theme="dark"]) {
+    --bg: #f4f7f4; --surface-2: #eaf1ec; --ink: #10201a; --ink-2: #3e5248; --muted: #7d8c84; --line: #e3eae5; --line-2: #d3ddd6;
+    --brand: #0e7a4b; --thumb: #e3f4e9; --accent: #f2a541; --hero-a: #0a5a37; --hero-b: #17955c; --scrim: rgba(10,30,20,.35);
+    --shadow: 0 1px 2px rgba(10,60,35,.05), 0 4px 14px rgba(10,60,35,.05);
+  }
+  :root[data-look="orange"]:not([data-theme="dark"]) {
+    --bg: #fff8f2; --surface-2: #fff0e4; --ink: #1d1712; --ink-2: #57483c; --muted: #9b8b7e; --line: #f6e8dc; --line-2: #efd9c6;
+    --brand: #f2620f; --thumb: #ffeedd; --accent: #f2620f; --hero-a: #e8550a; --hero-b: #ff9a3c; --scrim: rgba(40,20,5,.35);
+    --shadow: 0 1px 2px rgba(200,80,10,.06), 0 4px 14px rgba(200,80,10,.06);
+  }
+  :root[data-look="gold"]:not([data-theme="dark"]) {
+    --bg: #f6f5f2; --surface-2: #efede8; --ink: #121212; --ink-2: #4a4a48; --muted: #8b8a86; --line: #e9e7e2; --line-2: #dbd8d1;
+    --brand: #141414; --thumb: #fff0d2; --accent: #e3a12f; --hero-a: #121212; --hero-b: #2d2a24; --scrim: rgba(0,0,0,.35);
+    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 14px rgba(0,0,0,.05);
+  }
+  :root[data-look="gold"]:not([data-theme="dark"]) .tile .count { background: #e3a12f; color: #141414; }
+  :root[data-look="gold"]:not([data-theme="dark"]) .ticket b { color: #b47a14; }
+  :root[data-look="pink"]:not([data-theme="dark"]) {
+    --bg: #fff6f7; --surface-2: #ffeaee; --ink: #2a1219; --ink-2: #63414b; --muted: #a2858d; --line: #f8e4e9; --line-2: #f1d0d8;
+    --brand: #d6336c; --thumb: #ffe4ec; --accent: #f08c5a; --hero-a: #b8215a; --hero-b: #f06595; --scrim: rgba(60,10,25,.35);
+    --shadow: 0 1px 2px rgba(180,30,80,.05), 0 4px 14px rgba(180,30,80,.06);
+  }
+  :root[data-look="clean"]:not([data-theme="dark"]) {
+    --bg: #ffffff; --surface-2: #f5f4f1; --ink: #111318; --ink-2: #4b5059; --muted: #8c9099; --line: #ececea; --line-2: #dedcd8;
+    --brand: #14161b; --thumb: #f5f3ef; --accent: #f2a541; --hero-a: #1d2027; --hero-b: #2c3039; --scrim: rgba(17,19,24,.35); --shadow: none;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; background: var(--bg); color: var(--ink); }
@@ -86,7 +113,7 @@
   .link-btn { border: 0; background: none; color: var(--ink); font-weight: 500; font-size: 14px; padding: 12px 0 0; display: inline-flex; gap: 6px; align-items: center; text-decoration: underline; text-underline-offset: 3px; }
 
   .charge { position: fixed; left: 0; right: 0; bottom: calc(66px + env(safe-area-inset-bottom)); z-index: 6; padding: 10px 0; background: linear-gradient(to top, var(--bg) 70%, transparent); }
-  .charge button { width: 100%; border: 0; border-radius: 14px; background: var(--brand); color: var(--brand-ink); box-shadow: 0 8px 20px rgba(138,74,23,.25); padding: 15px 18px; font-weight: 600; font-size: 16px; display: flex; justify-content: space-between; align-items: center; }
+  .charge button { width: 100%; border: 0; border-radius: 14px; background: var(--brand); color: var(--brand-ink); box-shadow: 0 8px 20px color-mix(in srgb, var(--brand) 30%, transparent); padding: 15px 18px; font-weight: 600; font-size: 16px; display: flex; justify-content: space-between; align-items: center; }
   .charge.off { display: none; }
 
   /* bottom nav */
@@ -179,6 +206,10 @@
   .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .2s; }
   .switch.on { background: var(--brand); }
   .switch.on::after { transform: translateX(20px); }
+  .swatches { display: flex; gap: 10px; padding: 14px 0; flex-wrap: wrap; }
+  .swatch { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--line-2); padding: 0; position: relative; }
+  .swatch.on { box-shadow: 0 0 0 2px var(--ink); }
+  .swatch-name { color: var(--muted); font-size: 13px; padding-bottom: 12px; }
   .note { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
 
   /* bank card */
@@ -248,7 +279,8 @@
   <section id="view-settings" class="view hidden">
     <div class="h">Shop</div>
     <div class="card"><div class="set-row"><label for="setName">Shop name</label><input id="setName" /></div>
-    <div class="set-row"><label for="darkSwitch">Dark mode<small>Easier on the eyes at night</small></label><button class="switch" id="darkSwitch" role="switch" aria-checked="false" aria-label="Dark mode"></button></div></div>
+    <div class="set-row"><label for="darkSwitch">Dark mode<small>Easier on the eyes at night</small></label><button class="switch" id="darkSwitch" role="switch" aria-checked="false" aria-label="Dark mode"></button></div>
+    <div class="set-row" style="display:block"><label>Colour</label><div class="swatches" id="swatches"></div><div class="swatch-name" id="swatchName"></div></div></div>
     <div class="h">Prices</div>
     <div class="card" id="setPrices"></div>
     <div class="h">Transfers</div>
@@ -257,6 +289,9 @@
     <div class="set-row"><label for="setBank">Bank</label><input id="setBank" /></div></div>
     <div style="height:16px"></div>
     <button class="btn primary block" id="saveSettings">Save changes</button>
+    <div class="h">App</div>
+    <div class="card"><div class="set-row"><label>Install on this phone<small id="installNote">Opens like a normal app, works without data</small></label><button class="btn primary" id="installBtn" style="padding:10px 16px;font-size:14px">Install</button></div></div>
+    <div class="note hidden" id="installHelp" style="margin-top:10px"></div>
     <div class="h">Records</div>
     <p class="note">Orders are saved on this phone only. Download a copy now and then.</p>
     <button class="btn block" id="exportCsv">Download all orders</button>
@@ -632,6 +667,26 @@ function show(view) {
   window.scrollTo(0, 0);
 }
 
+// Colour styles for light mode, chosen in Settings and remembered on this phone.
+const LOOKS = [
+  { id: "warm", name: "Warm brown", c: ["#8a4a17", "#faf5ee"] },
+  { id: "clean", name: "Clean white", c: ["#14161b", "#ffffff"] },
+  { id: "green", name: "Fresh green", c: ["#0e7a4b", "#f4f7f4"] },
+  { id: "orange", name: "Bright orange", c: ["#f2620f", "#fff8f2"] },
+  { id: "gold", name: "Black & gold", c: ["#141414", "#e3a12f"] },
+  { id: "pink", name: "Soft pink", c: ["#d6336c", "#fff6f7"] },
+];
+function renderLooks() {
+  const cur = document.documentElement.dataset.look || "warm";
+  $("swatches").innerHTML = LOOKS.map((l) => `<button class="swatch ${l.id === cur ? "on" : ""}" data-look="${l.id}" aria-label="${l.name}" style="background:linear-gradient(135deg, ${l.c[0]} 50%, ${l.c[1]} 50%)"></button>`).join("");
+  $("swatchName").textContent = LOOKS.find((l) => l.id === cur).name + (document.documentElement.dataset.theme === "dark" ? " (shows when dark mode is off)" : "");
+  $("swatches").querySelectorAll("[data-look]").forEach((b) => (b.onclick = () => {
+    document.documentElement.dataset.look = b.dataset.look;
+    try { localStorage.setItem("loisAkara.look", b.dataset.look); } catch {}
+    renderLooks();
+  }));
+}
+
 // Light by default; dark only when she turns it on. Remembered on this phone.
 function applyTheme(dark) {
   if (dark) document.documentElement.dataset.theme = "dark"; else delete document.documentElement.dataset.theme;
@@ -640,6 +695,7 @@ function applyTheme(dark) {
   $("themeBtn").setAttribute("aria-label", dark ? "Turn off dark mode" : "Turn on dark mode");
   $("darkSwitch").classList.toggle("on", dark);
   $("darkSwitch").setAttribute("aria-checked", String(dark));
+  renderLooks();
 }
 function toggleTheme() {
   const dark = document.documentElement.dataset.theme !== "dark";
@@ -666,6 +722,34 @@ let lastView = "new";
 try { lastView = localStorage.getItem("loisAkara.view") || "new"; } catch {}
 show(TITLES[lastView] && lastView !== "bank" ? lastView : "new");
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+
+// Install from Settings. The browser offers its install prompt only once in a while, so keep it
+// for when she taps Install, and explain the menu route when the browser isn't offering it.
+let installPrompt = null;
+const installed = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+function renderInstall() {
+  const btn = $("installBtn");
+  if (installed()) { btn.textContent = "Installed"; btn.disabled = true; $("installNote").textContent = "You're using the installed app"; return; }
+  btn.textContent = "Install"; btn.disabled = false;
+}
+addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installPrompt = e; renderInstall(); });
+addEventListener("appinstalled", () => { installPrompt = null; toast(`${ICONS.check} Installed`); renderInstall(); });
+$("installBtn").onclick = async () => {
+  if (installPrompt) {
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === "accepted") installPrompt = null;
+    renderInstall();
+    return;
+  }
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const help = $("installHelp");
+  help.innerHTML = ios
+    ? "In Safari, tap the <b>Share</b> button (the square with an arrow), then <b>Add to Home Screen</b>."
+    : "Tap your browser's menu <b>⋮</b> (top right), then <b>Install app</b> or <b>Add to Home screen</b>. If you just deleted the app, wait a minute and try again.";
+  help.classList.remove("hidden");
+};
+renderInstall();
 </script>
 </body>
 </html>

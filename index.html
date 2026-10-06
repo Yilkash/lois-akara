@@ -5,197 +5,191 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Lois Akara</title>
 <meta name="description" content="Take orders, keep the queue and count the day's sales at Lois's akara spot." />
-<meta name="theme-color" content="#f7f1e8" id="themeColor" />
+<meta name="theme-color" content="#ffffff" id="themeColor" />
 <script>try { if (localStorage.getItem("loisAkara.theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch {}</script>
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" href="icon-192.png" />
 <link rel="apple-touch-icon" href="icon-192.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --bg: #f7f1e8; --surface: #ffffff; --surface-2: #fbf7f1; --ink: #23170d; --ink-2: #5d4a39; --muted: #9a8775;
-    --line: #ece2d4; --brand: #8a4a17; --brand-ink: #ffffff; --accent: #f2a541; --accent-soft: #fdeed6;
-    --ok: #1d7a4b; --ok-soft: #e2f3e9; --blue: #2364aa; --blue-soft: #e3edf9; --warn: #c2412d; --warn-soft: #fbe6e1;
-    --shadow: 0 1px 2px rgba(60,35,10,.06), 0 8px 24px rgba(60,35,10,.08);
-    --radius: 22px;
+    --bg: #ffffff; --surface: #ffffff; --surface-2: #f5f4f1; --ink: #111318; --ink-2: #4b5059; --muted: #8c9099;
+    --line: #ececea; --line-2: #dedcd8; --brand: #14161b; --brand-ink: #ffffff; --accent: #f2a541; --thumb: #f5f3ef;
+    --ok: #13804a; --ok-soft: #e6f4ec; --blue: #1f5fbf; --blue-soft: #e8f0fb; --warn: #c9372c; --warn-soft: #fbeceb;
+    --hero-a: #1d2027; --hero-b: #2c3039; --hero-ink: #ffffff;
+    --scrim: rgba(17,19,24,.35);
   }
   :root[data-theme="dark"] {
-    --bg: #14100c; --surface: #1e1812; --surface-2: #251e17; --ink: #f7eee3; --ink-2: #d4c3b0; --muted: #a08f7c;
-    --line: #33291f; --brand: #f2a541; --brand-ink: #23170d; --accent: #f2a541; --accent-soft: #3a2a15;
+    --bg: #14100c; --surface: #1e1812; --surface-2: #29211a; --ink: #f7eee3; --ink-2: #d4c3b0; --muted: #a08f7c;
+    --line: #33291f; --line-2: #45382b; --brand: #f2a541; --brand-ink: #23170d; --accent: #f2a541; --thumb: #2c2219;
     --ok: #5fd08f; --ok-soft: #16301f; --blue: #8cbcff; --blue-soft: #172739; --warn: #ff9580; --warn-soft: #3a1d17;
-    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    --hero-a: #3a2412; --hero-b: #5a3516; --hero-ink: #fff7ec;
+    --scrim: rgba(0,0,0,.55);
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; background: var(--bg); color: var(--ink); }
-  body { font: 15px/1.45 "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; padding-bottom: calc(90px + env(safe-area-inset-bottom)); -webkit-font-smoothing: antialiased; }
-  button { font: inherit; cursor: pointer; }
+  body { font: 15px/1.45 Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; padding-bottom: calc(84px + env(safe-area-inset-bottom)); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; cursor: pointer; color: inherit; }
   input { font-family: inherit; }
   svg { display: block; }
+  .mono { font-family: "DM Mono", ui-monospace, Menlo, monospace; letter-spacing: -.02em; }
   .wrap { max-width: 560px; margin: 0 auto; padding: 0 16px; }
 
   /* header */
-  header { padding: calc(14px + env(safe-area-inset-top)) 0 6px; }
+  header { padding: calc(14px + env(safe-area-inset-top)) 0 4px; }
   .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .hello { font-size: 13px; color: var(--muted); font-weight: 600; }
-  .shop { font-size: 24px; font-weight: 800; letter-spacing: -.02em; margin-top: 2px; }
-  .ticket { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 8px 12px; text-align: center; box-shadow: var(--shadow); }
-  .ticket small { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; }
-  .ticket b { font-size: 20px; font-weight: 800; color: var(--brand); }
-  .head-right { display: flex; align-items: center; gap: 10px; }
-  .theme-btn { width: 44px; height: 44px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); display: grid; place-items: center; box-shadow: var(--shadow); }
-  .switch { position: relative; width: 50px; height: 30px; border-radius: 15px; border: 0; background: var(--line); padding: 0; flex: 0 0 auto; transition: background .2s; }
-  .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .2s; }
-  .switch.on { background: var(--brand); }
-  .switch.on::after { transform: translateX(20px); }
-  .section-title { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; margin: 22px 0 10px; display: flex; justify-content: space-between; align-items: center; }
-  .section-title button { border: 0; background: none; color: var(--warn); font-weight: 700; font-size: 13px; text-transform: none; letter-spacing: 0; padding: 0; }
+  .hello { font-size: 13px; color: var(--muted); font-weight: 500; }
+  .shop { font-size: 26px; font-weight: 700; letter-spacing: -.025em; margin-top: 1px; }
+  .head-right { display: flex; align-items: center; gap: 8px; }
+  .round { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); display: grid; place-items: center; }
+  .ticket { height: 40px; border-radius: 20px; background: var(--surface-2); padding: 0 14px; display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); font-weight: 500; }
+  .ticket b { color: var(--ink); font-size: 15px; font-weight: 600; }
+  .h { font-size: 15px; font-weight: 600; margin: 24px 0 10px; display: flex; justify-content: space-between; align-items: baseline; }
+  .h small { color: var(--muted); font-weight: 500; font-size: 13px; margin-left: 6px; }
+  .h button { border: 0; background: none; color: var(--muted); font-weight: 500; font-size: 13px; padding: 0; }
 
   /* product tiles */
   .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-  .tile { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 10px 12px; box-shadow: var(--shadow); text-align: center; color: var(--ink); transition: transform .12s ease; }
+  .tile { position: relative; background: var(--thumb); border: 0; border-radius: 18px; padding: 16px 8px 12px; text-align: center; transition: transform .12s ease; }
   .tile:active { transform: scale(.97); }
-  .tile .art { width: 64px; height: 64px; margin: 0 auto 8px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); }
-  .tile .name { font-weight: 700; font-size: 14px; line-height: 1.2; }
-  .tile .price { color: var(--muted); font-size: 12px; font-weight: 600; margin-top: 2px; }
-  .tile .count { position: absolute; top: 8px; right: 8px; min-width: 26px; height: 26px; padding: 0 7px; border-radius: 13px; background: var(--brand); color: var(--brand-ink); font-weight: 800; font-size: 13px; display: grid; place-items: center; }
+  .tile .art { width: 56px; height: 56px; margin: 0 auto 8px; display: grid; place-items: center; }
+  .tile .name { font-weight: 600; font-size: 14px; line-height: 1.2; }
+  .tile .price { color: var(--muted); font-size: 12px; margin-top: 3px; }
+  .tile .count { position: absolute; top: 8px; right: 8px; min-width: 24px; height: 24px; padding: 0 7px; border-radius: 12px; background: var(--brand); color: var(--brand-ink); font-weight: 600; font-size: 12px; display: grid; place-items: center; }
 
-  /* current order */
-  .receipt { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
-  .line { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
-  .line:last-child { border-bottom: 0; }
-  .line .qty { min-width: 40px; height: 40px; border-radius: 12px; background: var(--accent-soft); color: var(--brand); font-weight: 800; display: grid; place-items: center; }
-  .line .what { flex: 1; min-width: 0; }
-  .line .what b { display: block; font-weight: 700; }
-  .line .what span { color: var(--muted); font-size: 13px; }
-  .line .amt { font-weight: 800; }
-  .icon-btn { width: 36px; height: 36px; border-radius: 10px; border: 0; background: var(--surface-2); color: var(--muted); display: grid; place-items: center; }
-  .empty-receipt { padding: 26px 16px; text-align: center; color: var(--muted); }
-  .empty-receipt b { display: block; color: var(--ink-2); font-size: 15px; margin-bottom: 2px; }
-  .field { width: 100%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 16px; padding: 14px 16px; font-size: 16px; font-weight: 600; outline: none; }
-  .field:focus { border-color: var(--brand); }
-  .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .seg button { border: 1.5px solid var(--line); background: var(--surface); color: var(--ink-2); border-radius: 16px; padding: 12px 6px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; }
-  .seg button.on[data-pay="cash"] { border-color: var(--ok); background: var(--ok-soft); color: var(--ok); }
-  .seg button.on[data-pay="transfer"] { border-color: var(--blue); background: var(--blue-soft); color: var(--blue); }
-  .seg button.on[data-pay="unpaid"] { border-color: var(--warn); background: var(--warn-soft); color: var(--warn); }
-  .link-btn { border: 0; background: none; color: var(--blue); font-weight: 700; padding: 10px 0 0; display: inline-flex; gap: 6px; align-items: center; }
+  /* rows: the one list style used everywhere */
+  .row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .row:last-child { border-bottom: 0; }
+  .thumb { width: 44px; height: 44px; border-radius: 12px; background: var(--thumb); display: grid; place-items: center; flex: 0 0 auto; }
+  .thumb svg { width: 30px; height: 30px; }
+  .row .what { flex: 1; min-width: 0; }
+  .row .what b { display: block; font-weight: 600; font-size: 15px; }
+  .row .what span { color: var(--muted); font-size: 13px; }
+  .row .amt { font-weight: 500; }
+  .x { width: 32px; height: 32px; border-radius: 50%; border: 0; background: transparent; color: var(--muted); display: grid; place-items: center; }
+  .empty-line { padding: 18px 0; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .summary { margin-top: 4px; }
+  .summary div { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; color: var(--ink-2); }
+  .summary .total { color: var(--ink); font-weight: 600; font-size: 15px; border-top: 1px solid var(--line); padding-top: 10px; margin-top: 4px; }
 
-  .charge { position: fixed; left: 0; right: 0; bottom: calc(72px + env(safe-area-inset-bottom)); z-index: 6; pointer-events: none; }
-  .charge .wrap { pointer-events: auto; }
-  .charge button { width: 100%; border: 0; border-radius: 18px; background: var(--brand); color: var(--brand-ink); padding: 16px 18px; font-weight: 800; font-size: 17px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 30px rgba(138,74,23,.35); }
-  .charge button:disabled { opacity: 0; transform: translateY(20px); pointer-events: none; }
-  .charge button { transition: opacity .2s, transform .2s; }
+  .field { width: 100%; border: 1px solid var(--line-2); background: var(--surface); color: var(--ink); border-radius: 12px; padding: 13px 14px; font-size: 16px; outline: none; }
+  .field:focus { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+  .field::placeholder { color: var(--muted); }
+  .pills { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pill { border: 1px solid var(--line-2); background: var(--surface); border-radius: 999px; padding: 9px 16px; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
+  .pill.on { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+  .link-btn { border: 0; background: none; color: var(--ink); font-weight: 500; font-size: 14px; padding: 12px 0 0; display: inline-flex; gap: 6px; align-items: center; text-decoration: underline; text-underline-offset: 3px; }
+
+  .charge { position: fixed; left: 0; right: 0; bottom: calc(66px + env(safe-area-inset-bottom)); z-index: 6; padding: 10px 0; background: linear-gradient(to top, var(--bg) 70%, transparent); }
+  .charge button { width: 100%; border: 0; border-radius: 14px; background: var(--brand); color: var(--brand-ink); padding: 15px 18px; font-weight: 600; font-size: 16px; display: flex; justify-content: space-between; align-items: center; }
+  .charge.off { display: none; }
 
   /* bottom nav */
-  nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 7; background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(14px); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom); }
+  nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 7; background: var(--surface); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom); }
   nav .wrap { display: grid; grid-template-columns: repeat(4, 1fr); }
-  nav button { border: 0; background: none; color: var(--muted); padding: 10px 4px 12px; font-size: 11px; font-weight: 700; display: flex; flex-direction: column; align-items: center; gap: 4px; position: relative; }
-  nav button.on { color: var(--brand); }
-  nav .dot { position: absolute; top: 6px; left: 50%; margin-left: 8px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--warn); color: #fff; font-size: 11px; display: grid; place-items: center; }
+  nav button { border: 0; background: none; color: var(--muted); padding: 9px 4px 10px; font-size: 11px; font-weight: 500; display: flex; flex-direction: column; align-items: center; gap: 3px; position: relative; }
+  nav button.on { color: var(--ink); font-weight: 600; }
+  nav .dot { position: absolute; top: 4px; left: 50%; margin-left: 7px; min-width: 17px; height: 17px; padding: 0 5px; border-radius: 9px; background: var(--warn); color: #fff; font-size: 10px; font-weight: 600; display: grid; place-items: center; }
 
   /* sheet */
-  .scrim { position: fixed; inset: 0; background: rgba(20,12,4,.45); z-index: 20; opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .scrim { position: fixed; inset: 0; background: var(--scrim); z-index: 20; opacity: 0; pointer-events: none; transition: opacity .2s; }
   .scrim.open { opacity: 1; pointer-events: auto; }
   .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 21; transform: translateY(105%); visibility: hidden; transition: transform .26s cubic-bezier(.2,.8,.2,1), visibility 0s .26s; }
   .sheet.open { transform: translateY(0); visibility: visible; transition: transform .26s cubic-bezier(.2,.8,.2,1); }
-  .sheet .panel { max-width: 560px; margin: 0 auto; background: var(--surface); border-radius: 26px 26px 0 0; padding: 10px 18px calc(18px + env(safe-area-inset-bottom)); box-shadow: 0 -10px 40px rgba(0,0,0,.2); }
-  .grab { width: 40px; height: 5px; border-radius: 3px; background: var(--line); margin: 4px auto 12px; }
-  .sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-  .sheet-head h3 { margin: 0; font-size: 20px; font-weight: 800; }
-  .sheet-head span { color: var(--muted); font-size: 13px; font-weight: 600; }
-  .toggle { display: inline-grid; grid-template-columns: 1fr 1fr; background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 3px; }
-  .toggle button { border: 0; background: none; color: var(--muted); padding: 7px 12px; border-radius: 9px; font-weight: 700; font-size: 13px; }
-  .toggle button.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
-  .display { margin: 14px 0 10px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; }
-  .display .big { font-size: 34px; font-weight: 800; letter-spacing: -.02em; min-height: 46px; }
-  .display .big .unit { font-size: 16px; color: var(--muted); font-weight: 700; margin-left: 6px; }
-  .display .conv { font-weight: 700; color: var(--brand); min-height: 22px; }
+  .sheet .panel { max-width: 560px; margin: 0 auto; background: var(--surface); border-radius: 22px 22px 0 0; padding: 8px 18px calc(16px + env(safe-area-inset-bottom)); }
+  .grab { width: 36px; height: 4px; border-radius: 2px; background: var(--line-2); margin: 4px auto 14px; }
+  .sheet-head { display: flex; align-items: center; gap: 12px; }
+  .sheet-head .what { flex: 1; }
+  .sheet-head h3 { margin: 0; font-size: 18px; font-weight: 600; }
+  .sheet-head span { color: var(--muted); font-size: 13px; }
+  .seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--surface-2); border-radius: 10px; padding: 3px; margin-top: 16px; }
+  .seg button { border: 0; background: none; color: var(--muted); padding: 8px; border-radius: 8px; font-weight: 500; font-size: 13px; }
+  .seg button.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.1); }
+  .display { padding: 18px 0 12px; }
+  .display small { color: var(--muted); font-size: 12px; }
+  .display .big { font-size: 40px; font-weight: 500; min-height: 52px; line-height: 1.25; }
+  .display .big .unit { font-family: Inter, sans-serif; font-size: 16px; color: var(--muted); font-weight: 500; margin-left: 8px; letter-spacing: 0; }
+  .display .conv { font-size: 14px; color: var(--ink-2); min-height: 21px; }
+  .display .conv b { color: var(--ink); font-weight: 600; }
   .display .conv .extra { color: var(--warn); }
-  .quick { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+  .quick { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
   .quick::-webkit-scrollbar { display: none; }
-  .quick button { flex: 0 0 auto; border: 1px solid var(--line); background: var(--accent-soft); color: var(--ink); border-radius: 12px; padding: 9px 14px; font-weight: 700; }
-  .quick button.on { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
-  .pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
-  .pad button { border: 0; background: var(--surface-2); color: var(--ink); border-radius: 14px; padding: 14px 0; font-size: 22px; font-weight: 700; }
-  .pad button:active { background: var(--line); }
-  .sheet-actions { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; margin-top: 12px; }
-  .btn { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 16px; padding: 15px; font-weight: 800; font-size: 16px; }
+  .quick .pill { flex: 0 0 auto; padding: 8px 15px; }
+  .pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 12px; }
+  .pad button { border: 0; background: transparent; border-radius: 12px; padding: 13px 0; font-size: 24px; font-weight: 400; display: grid; place-items: center; }
+  .pad button:active { background: var(--surface-2); }
+  .actions { display: grid; grid-template-columns: auto 1fr; gap: 10px; margin-top: 10px; }
+  .btn { border: 1px solid var(--line-2); background: var(--surface); border-radius: 12px; padding: 14px 18px; font-weight: 600; font-size: 15px; }
   .btn.primary { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
-  .btn.primary:disabled { opacity: .45; }
+  .btn.primary:disabled { opacity: .35; }
   .btn.danger { color: var(--warn); }
   .btn.block { width: 100%; }
 
   /* queue */
-  .order { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px; margin-bottom: 12px; }
-  .order-head { display: flex; align-items: center; gap: 12px; }
-  .badge-no { width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; font-weight: 800; font-size: 20px; background: var(--accent-soft); color: var(--brand); flex: 0 0 auto; }
-  .order.ready .badge-no { background: var(--ok-soft); color: var(--ok); }
-  .order-head .who { flex: 1; min-width: 0; }
-  .order-head .who b { font-size: 16px; }
-  .order-head .who .items { color: var(--ink-2); font-size: 14px; }
-  .order-head .right { text-align: right; }
-  .order-head .right b { font-size: 17px; display: block; }
-  .chip { display: inline-flex; align-items: center; gap: 4px; border-radius: 999px; padding: 3px 9px; font-size: 12px; font-weight: 700; }
+  .order { border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin-bottom: 10px; background: var(--surface); }
+  .order-head { display: flex; align-items: flex-start; gap: 12px; }
+  .no { width: 44px; height: 44px; border-radius: 12px; background: var(--surface-2); display: grid; place-items: center; font-weight: 600; font-size: 17px; flex: 0 0 auto; }
+  .order.ready .no { background: var(--ok-soft); color: var(--ok); }
+  .order-head .what { flex: 1; min-width: 0; }
+  .order-head .what b { font-weight: 600; }
+  .order-head .what div { color: var(--ink-2); font-size: 14px; }
+  .order-head .amt { font-size: 16px; font-weight: 500; }
+  .tags { display: flex; gap: 6px; align-items: center; margin-top: 10px; }
+  .tags .time { margin-left: auto; color: var(--muted); font-size: 12px; }
+  .chip { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 3px 9px; font-size: 12px; font-weight: 500; }
+  .chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
   .chip.cash { background: var(--ok-soft); color: var(--ok); }
   .chip.transfer { background: var(--blue-soft); color: var(--blue); }
   .chip.unpaid { background: var(--warn-soft); color: var(--warn); }
   .chip.ready { background: var(--ok-soft); color: var(--ok); }
   .chip.cancel { background: var(--surface-2); color: var(--muted); }
-  .order-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; align-items: center; }
-  .order-meta .time { color: var(--muted); font-size: 12px; font-weight: 600; margin-left: auto; }
   .order-actions { display: flex; gap: 8px; margin-top: 12px; }
-  .order-actions .btn { padding: 11px 12px; font-size: 14px; flex: 1; }
+  .order-actions .btn { padding: 11px 10px; font-size: 14px; flex: 1; }
   .order-actions .icon { flex: 0 0 auto; width: 44px; padding: 0; display: grid; place-items: center; color: var(--muted); }
 
   /* today */
-  .hero { background: linear-gradient(135deg, #8a4a17, #c4711f); color: #fff; border-radius: 24px; padding: 20px; box-shadow: 0 12px 30px rgba(138,74,23,.3); }
-  .hero small { opacity: .85; font-weight: 600; }
-  .hero .num { font-size: 38px; font-weight: 800; letter-spacing: -.02em; margin: 2px 0 12px; }
-  .bar { height: 10px; border-radius: 6px; background: rgba(255,255,255,.25); overflow: hidden; display: flex; }
-  .bar i { display: block; height: 100%; }
-  .legend { display: flex; gap: 14px; margin-top: 10px; font-size: 13px; font-weight: 600; flex-wrap: wrap; }
+  .hero { background: linear-gradient(140deg, var(--hero-a), var(--hero-b)); color: var(--hero-ink); border-radius: 18px; padding: 18px; }
+  .hero .label { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; opacity: .6; font-weight: 600; }
+  .hero .num { font-size: 36px; font-weight: 500; margin: 2px 0 2px; }
+  .hero .sub { font-size: 13px; opacity: .65; }
+  .hero .cols { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.12); }
+  .hero .cols div + div { border-left: 1px solid rgba(255,255,255,.12); padding-left: 12px; }
+  .hero .cols b { display: block; font-size: 15px; font-weight: 600; margin-top: 2px; }
+  .split { height: 6px; border-radius: 3px; background: var(--surface-2); display: flex; overflow: hidden; margin: 14px 0 6px; }
+  .split i { display: block; height: 100%; }
+  .legend { display: flex; gap: 14px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
   .legend span { display: inline-flex; align-items: center; gap: 6px; }
-  .legend em { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
-  .stat { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 14px; box-shadow: var(--shadow); }
-  .stat b { font-size: 22px; font-weight: 800; display: block; }
-  .stat span { color: var(--muted); font-size: 12px; font-weight: 700; }
-  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; }
-  .sold { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
-  .sold .meter { flex: 1; height: 8px; background: var(--surface-2); border-radius: 5px; overflow: hidden; }
-  .sold .meter i { display: block; height: 100%; background: var(--accent); border-radius: 5px; }
-  .sold .label { width: 96px; font-weight: 700; font-size: 14px; }
-  .sold .val { width: 44px; text-align: right; font-weight: 800; }
-  .hist { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--line); }
-  .hist:last-child { border-bottom: 0; }
-  .hist .n { font-weight: 800; color: var(--brand); width: 34px; }
-  .hist .d { flex: 1; min-width: 0; font-size: 14px; }
-  .hist .d span { color: var(--muted); }
-  .hist .t { text-align: right; font-weight: 800; font-size: 14px; }
+  .legend em { width: 8px; height: 8px; border-radius: 50%; }
+  .meter { height: 4px; background: var(--surface-2); border-radius: 2px; overflow: hidden; margin-top: 6px; }
+  .meter i { display: block; height: 100%; background: var(--accent); }
 
   /* settings */
-  .set-group { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; margin-bottom: 14px; }
-  .set-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
-  .set-row:last-child { border-bottom: 0; }
-  .set-row label { flex: 1; font-weight: 700; font-size: 14px; }
-  .set-row input { width: 55%; border: 0; background: transparent; color: var(--ink); text-align: right; font-size: 15px; font-weight: 600; outline: none; padding: 6px 0; }
+  .set-row { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .set-row label { flex: 1; font-weight: 500; font-size: 15px; }
+  .set-row label small { display: block; color: var(--muted); font-weight: 400; font-size: 12px; }
+  .set-row input { width: 55%; border: 0; background: transparent; color: var(--ink); text-align: right; font-size: 15px; outline: none; padding: 4px 0; }
   .set-row input::placeholder { color: var(--muted); }
-  .note { color: var(--muted); font-size: 13px; margin: 6px 4px 14px; }
+  .switch { position: relative; width: 48px; height: 28px; border-radius: 14px; border: 0; background: var(--line-2); padding: 0; flex: 0 0 auto; transition: background .2s; }
+  .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .2s; }
+  .switch.on { background: var(--brand); }
+  .switch.on::after { transform: translateX(20px); }
+  .note { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
 
   /* bank card */
-  .bankcard { margin-top: 10px; border-radius: 24px; padding: 22px; color: #fff; background: radial-gradient(120% 140% at 0% 0%, #2d7a50 0%, #155c3a 55%, #0e4a2e 100%); box-shadow: 0 14px 34px rgba(14,74,46,.35); }
-  .bankcard small { opacity: .8; font-weight: 600; }
-  .bankcard .acct { font-size: 34px; font-weight: 800; letter-spacing: .08em; margin: 10px 0 6px; font-variant-numeric: tabular-nums; }
-  .bankcard .nm { font-weight: 700; font-size: 17px; }
-  .bankcard .amount { margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.2); display: flex; justify-content: space-between; align-items: center; }
-  .bankcard .amount b { font-size: 26px; }
+  .bankcard { border-radius: 18px; padding: 20px; color: var(--hero-ink); background: linear-gradient(140deg, var(--hero-a), var(--hero-b)); }
+  .bankcard .label { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; opacity: .6; font-weight: 600; }
+  .bankcard .acct { font-size: 32px; font-weight: 500; margin: 4px 0 2px; }
+  .bankcard .nm { font-weight: 600; font-size: 16px; }
+  .bankcard .bk { opacity: .65; font-size: 13px; }
+  .bankcard .amount { margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.12); display: flex; justify-content: space-between; align-items: center; }
+  .bankcard .amount b { font-size: 24px; font-weight: 500; }
 
-  .empty { text-align: center; color: var(--muted); padding: 40px 20px; }
-  .empty .art { width: 72px; height: 72px; border-radius: 50%; background: var(--accent-soft); display: grid; place-items: center; margin: 0 auto 12px; }
-  .empty b { display: block; color: var(--ink); font-size: 16px; margin-bottom: 4px; }
-  .toast { position: fixed; left: 50%; top: calc(14px + env(safe-area-inset-top)); transform: translate(-50%, -20px); background: var(--ink); color: var(--bg); padding: 11px 16px; border-radius: 14px; font-weight: 700; opacity: 0; transition: all .22s; z-index: 30; pointer-events: none; white-space: nowrap; display: flex; gap: 8px; align-items: center; }
+  .empty { text-align: center; color: var(--muted); padding: 48px 20px; font-size: 14px; }
+  .empty .art { width: 64px; height: 64px; border-radius: 18px; background: var(--thumb); display: grid; place-items: center; margin: 0 auto 12px; }
+  .empty b { display: block; color: var(--ink); font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+  .toast { position: fixed; left: 50%; top: calc(12px + env(safe-area-inset-top)); transform: translate(-50%, -20px); background: var(--brand); color: var(--brand-ink); padding: 10px 16px; border-radius: 12px; font-weight: 500; font-size: 14px; opacity: 0; transition: all .22s; z-index: 30; pointer-events: none; white-space: nowrap; display: flex; gap: 8px; align-items: center; }
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
   .hidden { display: none !important; }
   .view { animation: fade .18s ease; }
@@ -206,64 +200,60 @@
 <div class="wrap">
   <header>
     <div class="top">
-      <div><div class="hello" id="hello">Good day</div><div class="shop" id="shopName">Lois Akara</div></div>
+      <div><div class="hello" id="hello">Good day</div><div class="shop" id="pageTitle">New order</div></div>
       <div class="head-right">
-        <button class="theme-btn" id="themeBtn" aria-label="Turn on dark mode"></button>
-        <div class="ticket"><small>Next order</small><b id="nextNo">#1</b></div>
+        <div class="ticket">Next <b id="nextNo">#1</b></div>
+        <button class="round" id="themeBtn" aria-label="Turn on dark mode"></button>
       </div>
     </div>
   </header>
 
   <!-- NEW ORDER -->
   <section id="view-new" class="view">
-    <div class="section-title">Tap to add</div>
+    <div class="h">Menu</div>
     <div class="tiles" id="tiles"></div>
 
-    <div class="section-title"><span>This order</span><button id="clearOrder" class="hidden">Clear</button></div>
-    <div class="receipt" id="receipt"></div>
+    <div class="h"><span>This order<small id="itemCount"></small></span><button id="clearOrder" class="hidden">Clear</button></div>
+    <div id="receipt"></div>
 
-    <div class="section-title">Customer</div>
+    <div class="h">Customer</div>
     <input class="field" id="custName" placeholder="Name (optional)" autocomplete="off" />
 
-    <div class="section-title">Payment</div>
-    <div class="seg" id="payBtns">
-      <button data-pay="cash"><span data-icon="cash"></span>Cash</button>
-      <button data-pay="transfer"><span data-icon="bank"></span>Transfer</button>
-      <button data-pay="unpaid"><span data-icon="clock"></span>Later</button>
+    <div class="h">Payment</div>
+    <div class="pills" id="payBtns">
+      <button class="pill" data-pay="cash">Cash</button>
+      <button class="pill" data-pay="transfer">Transfer</button>
+      <button class="pill" data-pay="unpaid">Pay later</button>
     </div>
-    <button class="link-btn hidden" id="showBank"><span data-icon="eye"></span>Show account to customer</button>
-    <div style="height:84px"></div>
+    <button class="link-btn hidden" id="showBank">Show account to customer</button>
+    <div style="height:80px"></div>
   </section>
 
   <!-- QUEUE -->
   <section id="view-queue" class="view hidden">
-    <div class="section-title">Waiting</div>
+    <div class="h"><span>Waiting<small id="qCount"></small></span></div>
     <div id="queue"></div>
   </section>
 
   <!-- TODAY -->
   <section id="view-today" class="view hidden">
-    <div class="section-title" id="todayDate">Today</div>
     <div id="todayBody"></div>
   </section>
 
   <!-- SETTINGS -->
   <section id="view-settings" class="view hidden">
-    <div class="section-title">Shop</div>
-    <div class="set-group">
-      <div class="set-row"><label for="setName">Shop name</label><input id="setName" /></div>
-      <div class="set-row"><label for="darkSwitch">Dark mode</label><button class="switch" id="darkSwitch" role="switch" aria-checked="false" aria-label="Dark mode"></button></div>
-    </div>
-    <div class="section-title">Prices</div>
-    <div class="set-group" id="setPrices"></div>
-    <div class="section-title">Transfers</div>
-    <div class="set-group">
-      <div class="set-row"><label for="setAcctNo">Account number</label><input id="setAcctNo" inputmode="numeric" placeholder="10 digits" /></div>
-      <div class="set-row"><label for="setAcctName">Account name</label><input id="setAcctName" /></div>
-      <div class="set-row"><label for="setBank">Bank</label><input id="setBank" /></div>
-    </div>
+    <div class="h">Shop</div>
+    <div class="set-row"><label for="setName">Shop name</label><input id="setName" /></div>
+    <div class="set-row"><label for="darkSwitch">Dark mode<small>Easier on the eyes at night</small></label><button class="switch" id="darkSwitch" role="switch" aria-checked="false" aria-label="Dark mode"></button></div>
+    <div class="h">Prices</div>
+    <div id="setPrices"></div>
+    <div class="h">Transfers</div>
+    <div class="set-row"><label for="setAcctNo">Account number</label><input id="setAcctNo" inputmode="numeric" placeholder="10 digits" /></div>
+    <div class="set-row"><label for="setAcctName">Account name</label><input id="setAcctName" /></div>
+    <div class="set-row"><label for="setBank">Bank</label><input id="setBank" /></div>
+    <div style="height:16px"></div>
     <button class="btn primary block" id="saveSettings">Save changes</button>
-    <div class="section-title">Records</div>
+    <div class="h">Records</div>
     <p class="note">Orders are saved on this phone only. Download a copy now and then.</p>
     <button class="btn block" id="exportCsv">Download all orders</button>
     <div style="height:10px"></div>
@@ -272,19 +262,20 @@
 
   <!-- BANK -->
   <section id="view-bank" class="view hidden">
-    <div class="section-title">Pay by transfer</div>
+    <div class="h">Pay by transfer</div>
     <div class="bankcard">
-      <small id="bBank">PalmPay</small>
-      <div class="acct" id="bAcct">—</div>
+      <div class="label">Account number</div>
+      <div class="acct mono" id="bAcct">—</div>
       <div class="nm" id="bName"></div>
-      <div class="amount"><small>Amount</small><b id="bAmount">₦0</b></div>
+      <div class="bk" id="bBank">PalmPay</div>
+      <div class="amount"><span class="label">Amount</span><b class="mono" id="bAmount">₦0</b></div>
     </div>
     <div style="height:14px"></div>
     <button class="btn primary block" id="closeBank">Done</button>
   </section>
 </div>
 
-<div class="charge"><div class="wrap"><button id="addOrder" disabled><span id="chargeLabel">Add order</span><span id="sum">₦0</span></button></div></div>
+<div class="charge" id="charge"><div class="wrap"><button id="addOrder"><span id="chargeLabel">Add order</span><span class="mono" id="sum">₦0</span></button></div></div>
 
 <nav><div class="wrap">
   <button data-view="new" class="on"><span data-icon="plus"></span>New order</button>
@@ -297,13 +288,15 @@
 <div class="sheet" id="sheet"><div class="panel">
   <div class="grab"></div>
   <div class="sheet-head">
-    <div><h3 id="sTitle">Akara</h3><span id="sPrice"></span></div>
-    <div class="toggle" id="sMode"><button data-m="amount">₦ Amount</button><button data-m="qty">Pieces</button></div>
+    <div class="thumb" id="sArt"></div>
+    <div class="what"><h3 id="sTitle">Akara</h3><span id="sPrice"></span></div>
+    <button class="x" id="sClose" aria-label="Close"></button>
   </div>
-  <div class="display"><div class="big" id="sBig">₦0</div><div class="conv" id="sConv">&nbsp;</div></div>
+  <div class="seg" id="sMode"><button data-m="amount">By amount</button><button data-m="qty">By pieces</button></div>
+  <div class="display"><small id="sLabel">Amount</small><div class="big mono" id="sBig">₦0</div><div class="conv" id="sConv">&nbsp;</div></div>
   <div class="quick" id="sQuick"></div>
   <div class="pad" id="sPad"></div>
-  <div class="sheet-actions">
+  <div class="actions">
     <button class="btn" id="sCancel">Cancel</button>
     <button class="btn primary" id="sAdd">Add</button>
   </div>
@@ -314,19 +307,15 @@
 <script>
 // Lois Akara: order taking, queue and daily totals. Everything is stored on this phone.
 const ICONS = {
-  plus: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
-  list: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg>',
-  chart: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
-  gear: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
-  cash: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>',
-  bank: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6M5 10v8M19 10v8M9.5 10v8M14.5 10v8M3 20h18"/></svg>',
-  clock: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
-  eye: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>',
-  x: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
-  check: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
-  moon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
-  sun: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
-  back: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><path d="m18 9-6 6M12 9l6 6"/></svg>',
+  plus: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M12 8v8M8 12h8"/></svg>',
+  list: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>',
+  chart: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 20V11M12 20V4M19 20v-6"/></svg>',
+  gear: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+  x: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+  check: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+  back: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><path d="m18 9-6 6M12 9l6 6"/></svg>',
+  moon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
+  sun: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
 };
 // Little drawings for the tiles: golden akara balls, a dusted puff-puff, a cup of kunu.
 const ART = {
@@ -351,6 +340,8 @@ const DEFAULTS = {
 };
 function load(key, fallback) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; } }
 function save(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch { toast("Could not save on this phone"); return false; } }
+// Ask the browser not to clear this app's storage when the phone runs low on space.
+try { navigator.storage?.persist?.(); } catch {}
 
 let settings = load("loisAkara.settings", DEFAULTS);
 // Keep her prices and bank details; take everything else (names, units) from the current defaults.
@@ -361,13 +352,17 @@ settings = {
 };
 let orders = load("loisAkara.orders", []);
 
-// The order being built: item id -> quantity.
-let cart = {};
-let pay = null;
+// The order being built (item id -> quantity), kept on the phone so a refresh doesn't lose it.
+const draft = load("loisAkara.draft", {});
+let cart = draft.cart || {};
+let pay = draft.pay || null;
+$("custName").value = draft.name || "";
+const saveDraft = () => save("loisAkara.draft", { cart, pay, name: $("custName").value });
 
 const itemById = (id) => settings.items.find((i) => i.id === id);
 const unitName = (it, n) => (n === 1 ? it.unit[0] : it.unit[1]);
 const cartLines = () => settings.items.filter((it) => cart[it.id] > 0).map((it) => ({ it, qty: cart[it.id], cost: cart[it.id] * it.price }));
+const per = (it) => (it.id === "kunu" ? "per cup" : "each");
 
 function renderTiles() {
   $("tiles").innerHTML = settings.items.map((it) => `
@@ -375,7 +370,7 @@ function renderTiles() {
       ${cart[it.id] ? `<span class="count">${cart[it.id]}</span>` : ""}
       <div class="art">${ART[it.id] || ""}</div>
       <div class="name">${it.name}</div>
-      <div class="price">${naira(it.price)}${it.id === "kunu" ? " / cup" : " each"}</div>
+      <div class="price">${naira(it.price)} ${per(it)}</div>
     </button>`).join("");
   $("tiles").querySelectorAll("[data-item]").forEach((b) => (b.onclick = () => openSheet(b.dataset.item)));
 }
@@ -383,16 +378,20 @@ function renderTiles() {
 function renderReceipt() {
   const lines = cartLines();
   const box = $("receipt");
+  const pieces = lines.reduce((s, l) => s + l.qty, 0);
+  $("itemCount").textContent = pieces ? pieces : "";
   if (!lines.length) {
-    box.innerHTML = `<div class="empty-receipt"><b>No items yet</b>Tap Akara, Puff-puff or Kunu above</div>`;
+    box.innerHTML = `<div class="empty-line">Tap something on the menu to start.</div>`;
   } else {
-    box.innerHTML = lines.map((l) => `
-      <div class="line">
-        <div class="qty">${l.qty}</div>
+    const total = lines.reduce((s, l) => s + l.cost, 0);
+    box.innerHTML = `<div style="border-top:1px solid var(--line)">${lines.map((l) => `
+      <div class="row">
+        <div class="thumb">${ART[l.it.id]}</div>
         <div class="what" data-edit="${l.it.id}"><b>${l.it.name}</b><span>${l.qty} ${unitName(l.it, l.qty)} × ${naira(l.it.price)}</span></div>
-        <div class="amt">${naira(l.cost)}</div>
-        <button class="icon-btn" data-remove="${l.it.id}" aria-label="Remove ${l.it.name}">${ICONS.x}</button>
-      </div>`).join("");
+        <div class="amt mono">${naira(l.cost)}</div>
+        <button class="x" data-remove="${l.it.id}" aria-label="Remove ${l.it.name}">${ICONS.x}</button>
+      </div>`).join("")}</div>
+      <div class="summary"><div class="total"><span>Total</span><span class="mono">${naira(total)}</span></div></div>`;
     box.querySelectorAll("[data-remove]").forEach((b) => (b.onclick = () => { delete cart[b.dataset.remove]; refreshOrder(); }));
     box.querySelectorAll("[data-edit]").forEach((b) => (b.onclick = () => openSheet(b.dataset.edit)));
   }
@@ -405,9 +404,10 @@ function refreshOrder() {
   const total = cartLines().reduce((s, l) => s + l.cost, 0);
   $("sum").textContent = naira(total);
   $("chargeLabel").textContent = `Add order #${nextNumber()}`;
-  $("addOrder").disabled = total === 0;
+  $("charge").classList.toggle("off", total === 0 || current !== "new");
   document.querySelectorAll("#payBtns button").forEach((b) => b.classList.toggle("on", b.dataset.pay === pay));
   $("showBank").classList.toggle("hidden", pay !== "transfer");
+  saveDraft();
 }
 
 /* ---------- the amount / pieces sheet ---------- */
@@ -418,7 +418,8 @@ function openSheet(id) {
   sheet.mode = it.byAmount ? "amount" : "qty";
   sheet.input = cart[id] ? String(it.byAmount ? cart[id] * it.price : cart[id]) : "";
   $("sTitle").textContent = it.name;
-  $("sPrice").textContent = `${naira(it.price)} ${it.id === "kunu" ? "per cup" : "each"}`;
+  $("sPrice").textContent = `${naira(it.price)} ${per(it)}`;
+  $("sArt").innerHTML = ART[it.id];
   $("sMode").classList.toggle("hidden", !it.byAmount);
   renderSheet();
   $("scrim").classList.add("open");
@@ -437,16 +438,18 @@ function renderSheet() {
   const { qty, cost, extra } = sheetResult();
   document.querySelectorAll("#sMode button").forEach((b) => b.classList.toggle("on", b.dataset.m === sheet.mode));
   if (sheet.mode === "amount") {
+    $("sLabel").textContent = "Customer is paying";
     $("sBig").innerHTML = naira(n);
-    $("sConv").innerHTML = qty ? `= ${qty} ${unitName(it, qty)}` + (extra ? ` <span class="extra">· ${naira(extra)} change</span>` : "") : extra ? `<span class="extra">Less than one ${it.unit[0]}</span>` : "&nbsp;";
-    $("sQuick").innerHTML = it.chips.map((c) => `<button data-q="${c}" class="${n === c ? "on" : ""}">${naira(c)}</button>`).join("");
+    $("sConv").innerHTML = qty ? `That's <b>${qty} ${unitName(it, qty)}</b>` + (extra ? ` <span class="extra">· ${naira(extra)} change</span>` : "") : extra ? `<span class="extra">Not enough for one ${it.unit[0]}</span>` : "&nbsp;";
+    $("sQuick").innerHTML = it.chips.map((c) => `<button class="pill ${n === c ? "on" : ""}" data-q="${c}">${naira(c)}</button>`).join("");
   } else {
+    $("sLabel").textContent = "How many";
     $("sBig").innerHTML = `${n}<span class="unit">${unitName(it, n)}</span>`;
-    $("sConv").innerHTML = n ? `= ${naira(cost)}` : "&nbsp;";
-    $("sQuick").innerHTML = [1, 2, 3, 5, 10].map((c) => `<button data-q="${c}" class="${n === c ? "on" : ""}">${c}</button>`).join("");
+    $("sConv").innerHTML = n ? `Costs <b>${naira(cost)}</b>` : "&nbsp;";
+    $("sQuick").innerHTML = [1, 2, 3, 5, 10].map((c) => `<button class="pill ${n === c ? "on" : ""}" data-q="${c}">${c}</button>`).join("");
   }
   $("sQuick").querySelectorAll("[data-q]").forEach((b) => (b.onclick = () => { sheet.input = b.dataset.q; renderSheet(); }));
-  $("sAdd").textContent = qty ? `Add ${qty} · ${naira(cost)}` : cart[sheet.id] ? "Remove" : "Add";
+  $("sAdd").innerHTML = qty ? `Add ${qty} · <span class="mono">${naira(cost)}</span>` : cart[sheet.id] ? "Remove" : "Add";
   $("sAdd").disabled = !qty && !cart[sheet.id];
 }
 $("sPad").innerHTML = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "00", "0", "del"]
@@ -458,6 +461,8 @@ $("sPad").querySelectorAll("[data-k]").forEach((b) => (b.onclick = () => {
   renderSheet();
 }));
 document.querySelectorAll("#sMode button").forEach((b) => (b.onclick = () => { sheet.mode = b.dataset.m; sheet.input = ""; renderSheet(); }));
+$("sClose").innerHTML = ICONS.x;
+$("sClose").onclick = closeSheet;
 $("sCancel").onclick = closeSheet;
 $("scrim").onclick = closeSheet;
 $("sAdd").onclick = () => {
@@ -484,7 +489,7 @@ function addOrder() {
     pay: pay || "unpaid", status: "waiting",
   };
   orders.push(order);
-  save("loisAkara.orders", orders);
+  if (!save("loisAkara.orders", orders)) { orders.pop(); return; }
   toast(`${ICONS.check} Order #${order.no} added · ${naira(order.total)}`);
   cart = {}; pay = null; $("custName").value = "";
   refreshOrder(); refreshHeader();
@@ -496,6 +501,7 @@ const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&
 
 function renderQueue() {
   const waiting = orders.filter((o) => o.day === todayKey() && o.status !== "done");
+  $("qCount").textContent = waiting.length || "";
   const box = $("queue");
   if (!waiting.length) {
     box.innerHTML = `<div class="empty"><div class="art">${ART.akara}</div><b>No one waiting</b>New orders will show up here.</div>`;
@@ -504,11 +510,11 @@ function renderQueue() {
   box.innerHTML = waiting.map((o) => `
     <div class="order ${o.status === "ready" ? "ready" : ""}">
       <div class="order-head">
-        <div class="badge-no">${o.no}</div>
-        <div class="who"><b>${o.name ? esc(o.name) : "Order #" + o.no}</b><div class="items">${describe(o)}</div></div>
-        <div class="right"><b>${naira(o.total)}</b></div>
+        <div class="no">${o.no}</div>
+        <div class="what"><b>${o.name ? esc(o.name) : "Order #" + o.no}</b><div>${describe(o)}</div></div>
+        <div class="amt mono">${naira(o.total)}</div>
       </div>
-      <div class="order-meta">${payChip(o)}${o.status === "ready" ? '<span class="chip ready">Ready</span>' : ""}<span class="time">${time(o)}</span></div>
+      <div class="tags">${payChip(o)}${o.status === "ready" ? '<span class="chip ready">Ready</span>' : ""}<span class="time">${time(o)}</span></div>
       <div class="order-actions">
         ${o.pay === "unpaid" ? `<button class="btn" data-a="cash" data-id="${o.id}">Paid cash</button><button class="btn" data-a="transfer" data-id="${o.id}">Paid transfer</button>` : o.status === "waiting" ? `<button class="btn" data-a="ready" data-id="${o.id}">Mark ready</button>` : ""}
         <button class="btn primary" data-a="done" data-id="${o.id}">Collected</button>
@@ -532,7 +538,6 @@ function act(id, action) {
 }
 
 function renderToday() {
-  $("todayDate").textContent = new Date().toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long" });
   const list = orders.filter((o) => o.day === todayKey() && !o.cancelled);
   const sum = (f) => list.filter(f).reduce((s, o) => s + o.total, 0);
   const total = sum(() => true), cash = sum((o) => o.pay === "cash"), transfer = sum((o) => o.pay === "transfer"), unpaid = sum((o) => o.pay === "unpaid");
@@ -540,23 +545,30 @@ function renderToday() {
   const sold = settings.items.map((it) => ({ it, qty: list.reduce((s, o) => s + (o.items.find((i) => i.id === it.id)?.qty || 0), 0) }));
   const maxQty = Math.max(1, ...sold.map((s) => s.qty));
   const all = orders.filter((o) => o.day === todayKey()).slice().reverse();
+  const date = new Date().toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long" });
   $("todayBody").innerHTML = `
     <div class="hero">
-      <small>Total sales</small>
-      <div class="num">${naira(total)}</div>
-      <div class="bar"><i style="width:${pct(cash)}%;background:#b9f5d0"></i><i style="width:${pct(transfer)}%;background:#bcd8ff"></i><i style="width:${pct(unpaid)}%;background:#ffc2b5"></i></div>
-      <div class="legend"><span><em style="background:#b9f5d0"></em>Cash ${naira(cash)}</span><span><em style="background:#bcd8ff"></em>Transfer ${naira(transfer)}</span>${unpaid ? `<span><em style="background:#ffc2b5"></em>Not paid ${naira(unpaid)}</span>` : ""}</div>
+      <div class="label">Total sales</div>
+      <div class="num mono">${naira(total)}</div>
+      <div class="sub">${date}</div>
+      <div class="cols">
+        <div><span class="label">Orders</span><b>${list.length}</b></div>
+        <div><span class="label">Cash</span><b class="mono">${naira(cash)}</b></div>
+        <div><span class="label">Transfer</span><b class="mono">${naira(transfer)}</b></div>
+      </div>
     </div>
-    <div class="grid2">
-      <div class="stat"><b>${list.length}</b><span>Orders</span></div>
-      <div class="stat"><b>${list.length ? naira(total / list.length) : "₦0"}</b><span>Average order</span></div>
-    </div>
-    <div class="section-title">Sold today</div>
-    <div class="card">${sold.map((s) => `<div class="sold"><div class="label">${s.it.name}</div><div class="meter"><i style="width:${(s.qty / maxQty) * 100}%"></i></div><div class="val">${s.qty}</div></div>`).join("")}</div>
-    <div class="section-title">All orders</div>
-    <div class="card" style="padding:4px 16px">${all.length ? all.map((o) => `
-      <div class="hist"><div class="n">#${o.no}</div><div class="d">${o.name ? `<b>${esc(o.name)}</b> · ` : ""}<span>${describe(o)}</span></div>
-      <div class="t">${naira(o.total)}<div>${o.cancelled ? '<span class="chip cancel">Cancelled</span>' : payChip(o)}</div></div></div>`).join("") : '<div class="empty" style="padding:24px 0">No orders yet today</div>'}</div>`;
+    ${total ? `<div class="split"><i style="width:${pct(cash)}%;background:var(--ok)"></i><i style="width:${pct(transfer)}%;background:var(--blue)"></i><i style="width:${pct(unpaid)}%;background:var(--warn)"></i></div>
+    <div class="legend"><span><em style="background:var(--ok)"></em>Cash</span><span><em style="background:var(--blue)"></em>Transfer</span>${unpaid ? `<span><em style="background:var(--warn)"></em>Not paid ${naira(unpaid)}</span>` : ""}</div>` : ""}
+    <div class="h">Sold today</div>
+    <div style="border-top:1px solid var(--line)">${sold.map((s) => `
+      <div class="row"><div class="thumb">${ART[s.it.id]}</div>
+      <div class="what"><b>${s.it.name}</b><div class="meter"><i style="width:${(s.qty / maxQty) * 100}%"></i></div></div>
+      <div class="amt" style="width:92px;text-align:right">${s.qty} <span style="color:var(--muted);font-size:13px">${unitName(s.it, s.qty)}</span></div></div>`).join("")}</div>
+    <div class="h"><span>All orders<small>${all.length || ""}</small></span></div>
+    <div style="border-top:1px solid var(--line)">${all.length ? all.map((o) => `
+      <div class="row"><div class="no" style="width:36px;height:36px;font-size:14px">${o.no}</div>
+      <div class="what"><b>${o.name ? esc(o.name) : "Order #" + o.no}</b><span>${describe(o)} · ${time(o)}</span></div>
+      <div style="text-align:right"><div class="amt mono">${naira(o.total)}</div>${o.cancelled ? '<span class="chip cancel">Cancelled</span>' : payChip(o)}</div></div>`).join("") : '<div class="empty" style="padding:24px 0">No orders yet today</div>'}</div>`;
 }
 
 function renderSettings() {
@@ -564,14 +576,14 @@ function renderSettings() {
   $("setAcctName").value = settings.bank.name;
   $("setBank").value = settings.bank.bank;
   $("setAcctNo").value = settings.bank.number;
-  $("setPrices").innerHTML = settings.items.map((it) => `<div class="set-row"><label for="p-${it.id}">${it.name}</label><input id="p-${it.id}" inputmode="numeric" data-price="${it.id}" value="${it.price}" /></div>`).join("");
+  $("setPrices").innerHTML = settings.items.map((it) => `<div class="set-row"><label for="p-${it.id}">${it.name}<small>₦ ${per(it)}</small></label><input id="p-${it.id}" inputmode="numeric" data-price="${it.id}" value="${it.price}" /></div>`).join("");
 }
 function saveSettings() {
   settings.shop = $("setName").value.trim() || DEFAULTS.shop;
   settings.bank = { name: $("setAcctName").value.trim(), bank: $("setBank").value.trim(), number: $("setAcctNo").value.replace(/\D/g, "") };
   document.querySelectorAll("[data-price]").forEach((inp) => { const v = parseInt(inp.value.replace(/\D/g, ""), 10); if (v > 0) itemById(inp.dataset.price).price = v; });
   if (save("loisAkara.settings", settings)) toast(`${ICONS.check} Saved`);
-  cart = {}; refreshOrder(); refreshHeader();
+  refreshOrder(); refreshHeader();
 }
 function showBank() {
   $("bAcct").textContent = settings.bank.number ? settings.bank.number.replace(/(\d{3})(\d{3})(\d+)/, "$1 $2 $3") : "Add in Settings";
@@ -592,10 +604,11 @@ function exportCsv() {
 let toastTimer;
 function toast(html) { const t = $("toast"); t.innerHTML = html; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 1900); }
 
+const TITLES = { new: "New order", queue: "Queue", today: "Today", settings: "Settings", bank: "Transfer" };
+let current = "new";
 function refreshHeader() {
   const h = new Date().getHours();
   $("hello").textContent = `${h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening"}, ${settings.bank.name.split(" ")[0] || "Lois"}`;
-  $("shopName").textContent = settings.shop;
   document.title = settings.shop;
   $("nextNo").textContent = "#" + nextNumber();
   const waiting = orders.filter((o) => o.day === todayKey() && o.status !== "done").length;
@@ -603,29 +616,22 @@ function refreshHeader() {
   $("qBadge").classList.toggle("hidden", !waiting);
 }
 function show(view) {
+  current = view;
   for (const v of ["new", "queue", "today", "settings", "bank"]) $("view-" + v).classList.toggle("hidden", v !== view);
   document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("on", b.dataset.view === view || (view === "bank" && b.dataset.view === "new")));
-  document.querySelector(".charge").classList.toggle("hidden", view !== "new");
+  $("pageTitle").textContent = TITLES[view];
   if (view === "queue") renderQueue();
   if (view === "today") renderToday();
   if (view === "settings") renderSettings();
+  refreshOrder();
+  if (view !== "bank") try { localStorage.setItem("loisAkara.view", view); } catch {}
   window.scrollTo(0, 0);
 }
-
-document.querySelectorAll("nav button").forEach((b) => (b.onclick = () => show(b.dataset.view)));
-document.querySelectorAll("#payBtns button").forEach((b) => (b.onclick = () => { pay = pay === b.dataset.pay ? null : b.dataset.pay; refreshOrder(); }));
-$("addOrder").onclick = addOrder;
-$("clearOrder").onclick = () => { cart = {}; refreshOrder(); };
-$("showBank").onclick = showBank;
-$("closeBank").onclick = () => show("new");
-$("saveSettings").onclick = saveSettings;
-$("exportCsv").onclick = exportCsv;
-$("clearAll").onclick = () => { if (confirm("Delete ALL orders on this phone? Download a copy first.")) { orders = []; save("loisAkara.orders", orders); refreshHeader(); refreshOrder(); toast("All orders deleted"); } };
 
 // Light by default; dark only when she turns it on. Remembered on this phone.
 function applyTheme(dark) {
   if (dark) document.documentElement.dataset.theme = "dark"; else delete document.documentElement.dataset.theme;
-  $("themeColor").content = dark ? "#14100c" : "#f7f1e8";
+  $("themeColor").content = dark ? "#14100c" : "#ffffff";
   $("themeBtn").innerHTML = dark ? ICONS.sun : ICONS.moon;
   $("themeBtn").setAttribute("aria-label", dark ? "Turn off dark mode" : "Turn on dark mode");
   $("darkSwitch").classList.toggle("on", dark);
@@ -636,12 +642,25 @@ function toggleTheme() {
   try { localStorage.setItem("loisAkara.theme", dark ? "dark" : "light"); } catch {}
   applyTheme(dark);
 }
+
+document.querySelectorAll("nav button").forEach((b) => (b.onclick = () => show(b.dataset.view)));
+document.querySelectorAll("#payBtns button").forEach((b) => (b.onclick = () => { pay = pay === b.dataset.pay ? null : b.dataset.pay; refreshOrder(); }));
+$("custName").oninput = saveDraft;
+$("addOrder").onclick = addOrder;
+$("clearOrder").onclick = () => { cart = {}; refreshOrder(); };
+$("showBank").onclick = showBank;
+$("closeBank").onclick = () => show("new");
+$("saveSettings").onclick = saveSettings;
+$("exportCsv").onclick = exportCsv;
 $("themeBtn").onclick = toggleTheme;
 $("darkSwitch").onclick = toggleTheme;
-applyTheme(document.documentElement.dataset.theme === "dark");
+$("clearAll").onclick = () => { if (confirm("Delete ALL orders on this phone? Download a copy first.")) { orders = []; save("loisAkara.orders", orders); refreshHeader(); refreshOrder(); toast("All orders deleted"); } };
 
-refreshOrder();
+applyTheme(document.documentElement.dataset.theme === "dark");
 refreshHeader();
+let lastView = "new";
+try { lastView = localStorage.getItem("loisAkara.view") || "new"; } catch {}
+show(TITLES[lastView] && lastView !== "bank" ? lastView : "new");
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>
 </body>

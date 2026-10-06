@@ -47,7 +47,6 @@
     --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 14px rgba(0,0,0,.05);
   }
   :root[data-look="gold"]:not([data-theme="dark"]) .tile .count { background: #e3a12f; color: #141414; }
-  :root[data-look="gold"]:not([data-theme="dark"]) .ticket b { color: #b47a14; }
   :root[data-look="pink"]:not([data-theme="dark"]) {
     --bg: #fff6f7; --surface-2: #ffeaee; --ink: #2a1219; --ink-2: #63414b; --muted: #a2858d; --line: #f8e4e9; --line-2: #f1d0d8;
     --brand: #d6336c; --thumb: #ffe4ec; --accent: #f08c5a; --hero-a: #b8215a; --hero-b: #f06595; --scrim: rgba(60,10,25,.35);
@@ -187,6 +186,12 @@
   .hero .cols { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.12); }
   .hero .cols div + div { border-left: 1px solid rgba(255,255,255,.12); padding-left: 12px; }
   .hero .cols b { display: block; font-size: 15px; font-weight: 600; margin-top: 2px; }
+  .start { width: 100%; border: 0; border-radius: 18px; background: var(--brand); color: var(--brand-ink); padding: 16px; display: flex; align-items: center; gap: 14px; text-align: left; margin-top: 14px; box-shadow: 0 8px 20px color-mix(in srgb, var(--brand) 25%, transparent); }
+  .start .plus { width: 44px; height: 44px; border-radius: 12px; background: rgba(255,255,255,.16); display: grid; place-items: center; }
+  .start > span:nth-child(2) { flex: 1; }
+  .start b { display: block; font-size: 17px; font-weight: 600; }
+  .start small { opacity: .75; font-size: 13px; }
+  [data-goqueue] { cursor: pointer; }
   .split { height: 6px; border-radius: 3px; background: var(--surface-2); display: flex; overflow: hidden; margin: 14px 0 6px; }
   .split i { display: block; height: 100%; }
   .legend { display: flex; gap: 14px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
@@ -237,7 +242,6 @@
     <div class="top">
       <div><div class="hello" id="hello">Good day</div><div class="shop" id="pageTitle">New order</div></div>
       <div class="head-right">
-        <div class="ticket">Next <b id="nextNo">#1</b></div>
         <button class="round" id="themeBtn" aria-label="Turn on dark mode"></button>
       </div>
     </div>
@@ -271,8 +275,8 @@
   </section>
 
   <!-- TODAY -->
-  <section id="view-today" class="view hidden">
-    <div id="todayBody"></div>
+  <section id="view-home" class="view hidden">
+    <div id="homeBody"></div>
   </section>
 
   <!-- SETTINGS -->
@@ -317,9 +321,9 @@
 <div class="charge" id="charge"><div class="wrap"><button id="addOrder"><span id="chargeLabel">Add order</span><span class="mono" id="sum">₦0</span></button></div></div>
 
 <nav><div class="wrap">
-  <button data-view="new" class="on"><span data-icon="plus"></span>New order</button>
+  <button data-view="home" class="on"><span data-icon="home"></span>Home</button>
+  <button data-view="new"><span data-icon="plus"></span>New order</button>
   <button data-view="queue"><span data-icon="list"></span>Queue<span class="dot hidden" id="qBadge">0</span></button>
-  <button data-view="today"><span data-icon="chart"></span>Today</button>
   <button data-view="settings"><span data-icon="gear"></span>Settings</button>
 </div></nav>
 
@@ -348,6 +352,8 @@
 const ICONS = {
   plus: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M12 8v8M8 12h8"/></svg>',
   list: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>',
+  home: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>',
+  chev: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>',
   chart: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 20V11M12 20V4M19 20v-6"/></svg>',
   gear: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
   x: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
@@ -576,7 +582,7 @@ function act(id, action) {
   renderQueue(); refreshHeader();
 }
 
-function renderToday() {
+function renderHome() {
   const list = orders.filter((o) => o.day === todayKey() && !o.cancelled);
   const sum = (f) => list.filter(f).reduce((s, o) => s + o.total, 0);
   const total = sum(() => true), cash = sum((o) => o.pay === "cash"), transfer = sum((o) => o.pay === "transfer"), unpaid = sum((o) => o.pay === "unpaid");
@@ -585,7 +591,10 @@ function renderToday() {
   const maxQty = Math.max(1, ...sold.map((s) => s.qty));
   const all = orders.filter((o) => o.day === todayKey()).slice().reverse();
   const date = new Date().toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long" });
-  $("todayBody").innerHTML = `
+  const waiting = orders.filter((o) => o.day === todayKey() && o.status !== "done");
+  $("homeBody").innerHTML = `
+    <button class="start" id="startOrder"><span class="plus">${ICONS.plus}</span><span><b>New order</b><small>Order #${nextNumber()} is next</small></span>${ICONS.chev}</button>
+    <div class="h">Today</div>
     <div class="hero">
       <div class="label">Total sales</div>
       <div class="num mono">${naira(total)}</div>
@@ -598,6 +607,11 @@ function renderToday() {
     </div>
     ${total ? `<div class="split"><i style="width:${pct(cash)}%;background:var(--ok)"></i><i style="width:${pct(transfer)}%;background:var(--blue)"></i><i style="width:${pct(unpaid)}%;background:var(--warn)"></i></div>
     <div class="legend"><span><em style="background:var(--ok)"></em>Cash</span><span><em style="background:var(--blue)"></em>Transfer</span>${unpaid ? `<span><em style="background:var(--warn)"></em>Not paid ${naira(unpaid)}</span>` : ""}</div>` : ""}
+    <div class="h"><span>Waiting<small>${waiting.length || ""}</small></span>${waiting.length ? '<button id="seeQueue">See all</button>' : ""}</div>
+    <div class="card">${waiting.length ? waiting.slice(0, 3).map((o) => `
+      <div class="row" data-goqueue><div class="no" style="width:36px;height:36px;font-size:14px">${o.no}</div>
+      <div class="what"><b>${o.name ? esc(o.name) : "Order #" + o.no}</b><span>${describe(o)}</span></div>
+      <div style="text-align:right"><div class="amt mono">${naira(o.total)}</div>${o.status === "ready" ? '<span class="chip ready">Ready</span>' : payChip(o)}</div></div>`).join("") : '<div class="empty" style="padding:22px 0">No one waiting</div>'}</div>
     <div class="h">Sold today</div>
     <div class="card">${sold.map((s) => `
       <div class="row"><div class="thumb">${ART[s.it.id]}</div>
@@ -608,6 +622,9 @@ function renderToday() {
       <div class="row"><div class="no" style="width:36px;height:36px;font-size:14px">${o.no}</div>
       <div class="what"><b>${o.name ? esc(o.name) : "Order #" + o.no}</b><span>${describe(o)} · ${time(o)}</span></div>
       <div style="text-align:right"><div class="amt mono">${naira(o.total)}</div>${o.cancelled ? '<span class="chip cancel">Cancelled</span>' : payChip(o)}</div></div>`).join("") : '<div class="empty" style="padding:24px 0">No orders yet today</div>'}</div>`;
+  $("startOrder").onclick = () => show("new");
+  $("seeQueue") && ($("seeQueue").onclick = () => show("queue"));
+  $("homeBody").querySelectorAll("[data-goqueue]").forEach((r) => (r.onclick = () => show("queue")));
 }
 
 function renderSettings() {
@@ -643,24 +660,24 @@ function exportCsv() {
 let toastTimer;
 function toast(html) { const t = $("toast"); t.innerHTML = html; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 1900); }
 
-const TITLES = { new: "New order", queue: "Queue", today: "Today", settings: "Settings", bank: "Transfer" };
-let current = "new";
+const TITLES = { home: "Lois Akara", new: "New order", queue: "Queue", settings: "Settings", bank: "Transfer" };
+let current = "home";
 function refreshHeader() {
   const h = new Date().getHours();
-  $("hello").textContent = `${h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening"}, ${settings.bank.name.split(" ")[0] || "Lois"}`;
+  const part = h < 5 || h >= 21 ? "Good night" : h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+  $("hello").textContent = `${part}, ${settings.bank.name.split(" ")[0] || "Lois"}`;
   document.title = settings.shop;
-  $("nextNo").textContent = "#" + nextNumber();
   const waiting = orders.filter((o) => o.day === todayKey() && o.status !== "done").length;
   $("qBadge").textContent = waiting;
   $("qBadge").classList.toggle("hidden", !waiting);
 }
 function show(view) {
   current = view;
-  for (const v of ["new", "queue", "today", "settings", "bank"]) $("view-" + v).classList.toggle("hidden", v !== view);
+  for (const v of ["home", "new", "queue", "settings", "bank"]) $("view-" + v).classList.toggle("hidden", v !== view);
   document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("on", b.dataset.view === view || (view === "bank" && b.dataset.view === "new")));
-  $("pageTitle").textContent = TITLES[view];
+  $("pageTitle").textContent = view === "home" ? settings.shop : TITLES[view];
   if (view === "queue") renderQueue();
-  if (view === "today") renderToday();
+  if (view === "home") renderHome();
   if (view === "settings") renderSettings();
   refreshOrder();
   if (view !== "bank") try { localStorage.setItem("loisAkara.view", view); } catch {}
@@ -718,9 +735,9 @@ $("clearAll").onclick = () => { if (confirm("Delete ALL orders on this phone? Do
 
 applyTheme(document.documentElement.dataset.theme === "dark");
 refreshHeader();
-let lastView = "new";
-try { lastView = localStorage.getItem("loisAkara.view") || "new"; } catch {}
-show(TITLES[lastView] && lastView !== "bank" ? lastView : "new");
+let lastView = "home";
+try { lastView = localStorage.getItem("loisAkara.view") || "home"; } catch {}
+show(TITLES[lastView] && lastView !== "bank" ? lastView : "home");
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 
 // Install from Settings. The browser offers its install prompt only once in a while, so keep it

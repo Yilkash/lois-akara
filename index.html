@@ -82,7 +82,8 @@
   .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
   .tile { position: relative; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); border-radius: 18px; padding: 16px 8px 12px; text-align: center; transition: transform .12s ease; }
   .tile:active { transform: scale(.97); }
-  .tile .art { width: 62px; height: 62px; margin: 0 auto 8px; display: grid; place-items: center; border-radius: 50%; background: radial-gradient(circle, var(--thumb) 55%, transparent 72%); }
+  .tile .art { width: 72px; height: 72px; margin: 0 auto 10px; border-radius: 50%; overflow: hidden; background: var(--thumb); box-shadow: 0 4px 12px rgba(0,0,0,.12); }
+  .tile .art img, .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .tile .name { font-weight: 600; font-size: 14px; line-height: 1.2; }
   .tile .price { color: var(--muted); font-size: 12px; margin-top: 3px; }
   .tile .count { position: absolute; top: 8px; right: 8px; min-width: 24px; height: 24px; padding: 0 7px; border-radius: 12px; background: var(--brand); color: var(--brand-ink); font-weight: 600; font-size: 12px; display: grid; place-items: center; }
@@ -91,7 +92,7 @@
   .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 0 14px; box-shadow: var(--shadow); }
   .row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
   .row:last-child { border-bottom: 0; }
-  .thumb { width: 44px; height: 44px; border-radius: 12px; background: var(--thumb); display: grid; place-items: center; flex: 0 0 auto; }
+  .thumb { width: 44px; height: 44px; border-radius: 12px; background: var(--thumb); display: grid; place-items: center; flex: 0 0 auto; overflow: hidden; }
   .thumb svg { width: 30px; height: 30px; }
   .row .what { flex: 1; min-width: 0; }
   .row .what b { display: block; font-weight: 600; font-size: 15px; }
@@ -285,6 +286,10 @@
     <div class="card"><div class="set-row"><label for="setName">Shop name</label><input id="setName" /></div>
     <div class="set-row"><label for="darkSwitch">Dark mode<small>Easier on the eyes at night</small></label><button class="switch" id="darkSwitch" role="switch" aria-checked="false" aria-label="Dark mode"></button></div>
     <div class="set-row" style="display:block"><label>Colour</label><div class="swatches" id="swatches"></div><div class="swatch-name" id="swatchName"></div></div></div>
+    <div class="h">Menu photos</div>
+    <div class="card" id="setPhotos"></div>
+    <p class="note" style="margin-top:8px">Tap Change to use a photo of your own akara, puff-puff or kunu.</p>
+    <input type="file" accept="image/*" id="photoFile" class="hidden" />
     <div class="h">Prices</div>
     <div class="card" id="setPrices"></div>
     <div class="h">Transfers</div>
@@ -301,6 +306,7 @@
     <button class="btn block" id="exportCsv">Download all orders</button>
     <div style="height:10px"></div>
     <button class="btn danger block" id="clearAll">Delete all orders</button>
+    <p class="note" style="margin-top:22px;font-size:11px">Starter photos from Wikimedia Commons, CC BY-SA 4.0: akara by AkinkuotuFunmi, puff-puff by Halima Waziri, kunu by Agan56. Cropped.</p>
   </section>
 
   <!-- BANK -->
@@ -370,6 +376,12 @@ const ART = {
 };
 document.querySelectorAll("[data-icon]").forEach((el) => (el.innerHTML = ICONS[el.dataset.icon]));
 
+// Menu photos: starter photos ship with the app; her own replace them and stay on this phone.
+const PHOTOS = { akara: "photos/akara.jpg", puff: "photos/puff.jpg", kunu: "photos/kunu.jpg" };
+let myPhotos = {};
+try { myPhotos = JSON.parse(localStorage.getItem("loisAkara.photos") || "{}"); } catch {}
+const photoSrc = (id) => myPhotos[id] || PHOTOS[id];
+const pic = (id) => (photoSrc(id) ? `<img src="${photoSrc(id)}" alt="" loading="lazy">` : ART[id] || "");
 const naira = (n) => "₦" + Math.round(n).toLocaleString("en-NG");
 const todayKey = () => new Date().toLocaleDateString("en-CA");
 const $ = (id) => document.getElementById(id);
@@ -413,7 +425,7 @@ function renderTiles() {
   $("tiles").innerHTML = settings.items.map((it) => `
     <button class="tile" data-item="${it.id}">
       ${cart[it.id] ? `<span class="count">${cart[it.id]}</span>` : ""}
-      <div class="art">${ART[it.id] || ""}</div>
+      <div class="art">${pic(it.id)}</div>
       <div class="name">${it.name}</div>
       <div class="price">${naira(it.price)} ${per(it)}</div>
     </button>`).join("");
@@ -431,7 +443,7 @@ function renderReceipt() {
     const total = lines.reduce((s, l) => s + l.cost, 0);
     box.innerHTML = `<div class="card">${lines.map((l) => `
       <div class="row">
-        <div class="thumb">${ART[l.it.id]}</div>
+        <div class="thumb">${pic(l.it.id)}</div>
         <div class="what" data-edit="${l.it.id}"><b>${l.it.name}</b><span>${l.qty} ${unitName(l.it, l.qty)} × ${naira(l.it.price)}</span></div>
         <div class="amt mono">${naira(l.cost)}</div>
         <button class="x" data-remove="${l.it.id}" aria-label="Remove ${l.it.name}">${ICONS.x}</button>
@@ -464,7 +476,7 @@ function openSheet(id) {
   sheet.input = cart[id] ? String(it.byAmount ? cart[id] * it.price : cart[id]) : "";
   $("sTitle").textContent = it.name;
   $("sPrice").textContent = `${naira(it.price)} ${per(it)}`;
-  $("sArt").innerHTML = ART[it.id];
+  $("sArt").innerHTML = pic(it.id);
   $("sMode").classList.toggle("hidden", !it.byAmount);
   renderSheet();
   $("scrim").classList.add("open");
@@ -614,7 +626,7 @@ function renderHome() {
       <div style="text-align:right"><div class="amt mono">${naira(o.total)}</div>${o.status === "ready" ? '<span class="chip ready">Ready</span>' : payChip(o)}</div></div>`).join("") : '<div class="empty" style="padding:22px 0">No one waiting</div>'}</div>
     <div class="h">Sold today</div>
     <div class="card">${sold.map((s) => `
-      <div class="row"><div class="thumb">${ART[s.it.id]}</div>
+      <div class="row"><div class="thumb">${pic(s.it.id)}</div>
       <div class="what"><b>${s.it.name}</b><div class="meter"><i style="width:${(s.qty / maxQty) * 100}%"></i></div></div>
       <div class="amt" style="width:92px;text-align:right">${s.qty} <span style="color:var(--muted);font-size:13px">${unitName(s.it, s.qty)}</span></div></div>`).join("")}</div>
     <div class="h"><span>All orders<small>${all.length || ""}</small></span></div>
@@ -632,8 +644,37 @@ function renderSettings() {
   $("setAcctName").value = settings.bank.name;
   $("setBank").value = settings.bank.bank;
   $("setAcctNo").value = settings.bank.number;
+  renderPhotos();
   $("setPrices").innerHTML = settings.items.map((it) => `<div class="set-row"><label for="p-${it.id}">${it.name}<small>₦ ${per(it)}</small></label><input id="p-${it.id}" inputmode="numeric" data-price="${it.id}" value="${it.price}" /></div>`).join("");
 }
+function renderPhotos() {
+  $("setPhotos").innerHTML = settings.items.map((it) => `<div class="set-row"><div class="thumb">${pic(it.id)}</div><label>${it.name}<small>${myPhotos[it.id] ? "Your photo" : "Starter photo"}</small></label>
+    ${myPhotos[it.id] ? `<button class="btn" data-reset-photo="${it.id}" style="padding:8px 12px;font-size:13px">Reset</button>` : ""}<button class="btn" data-photo="${it.id}" style="padding:8px 14px;font-size:13px">Change</button></div>`).join("");
+  $("setPhotos").querySelectorAll("[data-photo]").forEach((b) => (b.onclick = () => { $("photoFile").dataset.item = b.dataset.photo; $("photoFile").value = ""; $("photoFile").click(); }));
+  $("setPhotos").querySelectorAll("[data-reset-photo]").forEach((b) => (b.onclick = () => { delete myPhotos[b.dataset.resetPhoto]; savePhotos(); }));
+}
+function savePhotos() {
+  try { localStorage.setItem("loisAkara.photos", JSON.stringify(myPhotos)); } catch { toast("Photo too big to save"); }
+  renderPhotos(); refreshOrder();
+}
+// Shrink her photo to a small square so it fits in the phone's storage.
+$("photoFile").onchange = () => {
+  const file = $("photoFile").files[0];
+  if (!file) return;
+  const img = new Image();
+  img.onload = () => {
+    const size = 320, c = document.createElement("canvas");
+    c.width = c.height = size;
+    const side = Math.min(img.width, img.height);
+    c.getContext("2d").drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, size, size);
+    myPhotos[$("photoFile").dataset.item] = c.toDataURL("image/jpeg", 0.8);
+    URL.revokeObjectURL(img.src);
+    savePhotos();
+    toast(`${ICONS.check} Photo updated`);
+  };
+  img.onerror = () => toast("Could not open that photo");
+  img.src = URL.createObjectURL(file);
+};
 function saveSettings() {
   settings.shop = $("setName").value.trim() || DEFAULTS.shop;
   settings.bank = { name: $("setAcctName").value.trim(), bank: $("setBank").value.trim(), number: $("setAcctNo").value.replace(/\D/g, "") };

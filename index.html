@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Lois Akara</title>
+<meta name="description" content="Take orders, keep the queue and count the day's sales at Lois's akara spot." />
+<meta name="theme-color" content="#7a3e12" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="icon-192.png" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<style>
+  :root {
+    --bg: #fbf6ef; --card: #ffffff; --ink: #2b1a0c; --muted: #7d6a58; --line: #eadfce;
+    --brand: #7a3e12; --gold: #e9a23b; --gold-soft: #fdf0d8; --ok: #1f7a44; --ok-soft: #e3f4e9;
+    --warn: #b3261e; --warn-soft: #fbe5e3; --blue: #1d5fa8; --blue-soft: #e4eefb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #16110c; --card: #211a13; --ink: #f6ecdf; --muted: #b8a58f; --line: #3a2e22;
+      --brand: #e9a23b; --gold: #e9a23b; --gold-soft: #3a2a14; --ok: #5cc98a; --ok-soft: #173326;
+      --warn: #ff8a80; --warn-soft: #3d1c19; --blue: #8ab8ff; --blue-soft: #1a2a40;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #16110c; --card: #211a13; --ink: #f6ecdf; --muted: #b8a58f; --line: #3a2e22;
+    --brand: #e9a23b; --gold: #e9a23b; --gold-soft: #3a2a14; --ok: #5cc98a; --ok-soft: #173326;
+    --warn: #ff8a80; --warn-soft: #3d1c19; --blue: #8ab8ff; --blue-soft: #1a2a40;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); }
+  body { font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; padding-bottom: 84px; }
+  header { position: sticky; top: 0; z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line);
+    padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  header h1 { font-size: 20px; margin: 0; color: var(--brand); }
+  header small { color: var(--muted); display: block; font-size: 12px; }
+  .pill { background: var(--gold-soft); color: var(--brand); border-radius: 999px; padding: 4px 10px; font-weight: 700; font-size: 14px; white-space: nowrap; }
+  main { max-width: 560px; margin: 0 auto; padding: 12px 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin-bottom: 12px; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .item h3 { margin: 0; font-size: 18px; }
+  .item .price { color: var(--muted); font-size: 14px; }
+  .mode { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .mode button { border: 0; background: transparent; color: var(--muted); padding: 6px 12px; font-size: 14px; font-weight: 600; }
+  .mode button.on { background: var(--brand); color: #fff; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .chip { border: 1px solid var(--line); background: var(--gold-soft); color: var(--ink); border-radius: 12px; padding: 10px 12px; font-weight: 700; font-size: 15px; min-width: 64px; }
+  .chip:active { transform: scale(0.97); }
+  .chip.on { background: var(--brand); color: #fff; border-color: var(--brand); }
+  .entry { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .entry input { flex: 1; min-width: 0; font-size: 22px; font-weight: 700; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); color: var(--ink); }
+  .step { width: 48px; height: 48px; border-radius: 12px; border: 1px solid var(--line); background: var(--gold-soft); color: var(--ink); font-size: 24px; font-weight: 800; }
+  .result { margin-top: 8px; font-weight: 700; color: var(--brand); min-height: 22px; }
+  .result .extra { color: var(--warn); font-weight: 600; }
+  .clear { border: 0; background: none; color: var(--muted); text-decoration: underline; font-size: 14px; padding: 4px; }
+  label.field { display: block; font-weight: 600; margin-bottom: 6px; }
+  input.text { width: 100%; font-size: 17px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); color: var(--ink); }
+  .pay { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+  .pay button { border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 12px; padding: 12px 6px; font-weight: 700; font-size: 15px; }
+  .pay button.on[data-pay="cash"] { background: var(--ok-soft); border-color: var(--ok); color: var(--ok); }
+  .pay button.on[data-pay="transfer"] { background: var(--blue-soft); border-color: var(--blue); color: var(--blue); }
+  .pay button.on[data-pay="unpaid"] { background: var(--warn-soft); border-color: var(--warn); color: var(--warn); }
+  .total { position: sticky; bottom: 76px; z-index: 4; background: var(--brand); color: #fff; border-radius: 16px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+  :root[data-theme="dark"] .total, .total { color: #fff; }
+  .total .sum { font-size: 24px; font-weight: 800; }
+  .total .lines { font-size: 13px; opacity: .9; }
+  .total button { border: 0; background: #fff; color: #7a3e12; border-radius: 12px; padding: 12px 16px; font-weight: 800; font-size: 16px; white-space: nowrap; }
+  .total button:disabled { opacity: .5; }
+  nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 6; background: var(--card); border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(4, 1fr); padding-bottom: env(safe-area-inset-bottom); }
+  nav button { border: 0; background: none; color: var(--muted); padding: 10px 4px 12px; font-size: 13px; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  nav button .ico { font-size: 20px; }
+  nav button.on { color: var(--brand); }
+  nav .badge { background: var(--warn); color: #fff; border-radius: 999px; font-size: 11px; padding: 0 6px; margin-left: 2px; }
+  .order { border-left: 6px solid var(--gold); }
+  .order.ready { border-left-color: var(--ok); }
+  .order .num { font-size: 22px; font-weight: 800; color: var(--brand); }
+  .order .what { margin: 6px 0; font-size: 16px; }
+  .tag { display: inline-block; border-radius: 999px; padding: 3px 10px; font-size: 13px; font-weight: 700; }
+  .tag.cash { background: var(--ok-soft); color: var(--ok); }
+  .tag.transfer { background: var(--blue-soft); color: var(--blue); }
+  .tag.unpaid { background: var(--warn-soft); color: var(--warn); }
+  .tag.ready { background: var(--ok-soft); color: var(--ok); }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .actions button { border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 10px; padding: 10px 12px; font-weight: 700; font-size: 14px; }
+  .actions button.primary { background: var(--brand); color: #fff; border-color: var(--brand); }
+  .empty { text-align: center; color: var(--muted); padding: 30px 10px; }
+  .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
+  .stat b { display: block; font-size: 22px; color: var(--brand); }
+  .stat span { color: var(--muted); font-size: 13px; }
+  .bank { text-align: center; }
+  .bank .acct { font-size: 34px; font-weight: 800; letter-spacing: 2px; margin: 6px 0; }
+  .bank .name { font-size: 18px; font-weight: 700; }
+  .muted { color: var(--muted); font-size: 14px; }
+  .settings label { display: block; margin: 10px 0 4px; font-weight: 600; }
+  .btn { border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 12px; padding: 12px; font-weight: 700; width: 100%; font-size: 15px; margin-top: 8px; }
+  .btn.primary { background: var(--brand); color: #fff; border-color: var(--brand); }
+  .btn.danger { color: var(--warn); }
+  .toast { position: fixed; left: 50%; bottom: 150px; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 12px; font-weight: 700; opacity: 0; transition: opacity .2s; z-index: 10; pointer-events: none; white-space: nowrap; }
+  .toast.show { opacity: 1; }
+  .hidden { display: none !important; }
+  h2 { font-size: 18px; margin: 4px 0 10px; }
+</style>
+</head>
+<body>
+<header>
+  <div><h1 id="shopName">Lois Akara</h1><small id="today"></small></div>
+  <span class="pill" id="nextNo">Next #1</span>
+</header>
+
+<main>
+  <!-- NEW ORDER -->
+  <section id="view-new">
+    <div id="items"></div>
+    <div class="card">
+      <label class="field" for="custName">Customer name <span class="muted">(optional)</span></label>
+      <input class="text" id="custName" placeholder="e.g. Aisha" autocomplete="off" />
+      <label class="field" style="margin-top:12px">Payment</label>
+      <div class="pay" id="payBtns">
+        <button data-pay="cash">💵 Cash</button>
+        <button data-pay="transfer">🏦 Transfer</button>
+        <button data-pay="unpaid">⏳ Not yet</button>
+      </div>
+      <button class="btn hidden" id="showBank" style="margin-top:10px">Show bank details to customer</button>
+    </div>
+    <div class="total">
+      <div><div class="sum" id="sum">₦0</div><div class="lines" id="sumLines">Nothing added yet</div></div>
+      <button id="addOrder" disabled>Add order</button>
+    </div>
+  </section>
+
+  <!-- QUEUE -->
+  <section id="view-queue" class="hidden">
+    <h2>Waiting</h2>
+    <div id="queue"></div>
+  </section>
+
+  <!-- TODAY -->
+  <section id="view-today" class="hidden">
+    <h2>Today</h2>
+    <div class="stats" id="stats"></div>
+    <div class="card" style="margin-top:12px">
+      <h2>All orders today</h2>
+      <div id="history"></div>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="view-settings" class="hidden settings">
+    <div class="card">
+      <h2>Shop</h2>
+      <label for="setName">Shop name</label>
+      <input class="text" id="setName" />
+      <label>Prices (₦)</label>
+      <div id="setPrices"></div>
+    </div>
+    <div class="card">
+      <h2>Bank details for transfers</h2>
+      <label for="setAcctName">Account name</label>
+      <input class="text" id="setAcctName" />
+      <label for="setBank">Bank</label>
+      <input class="text" id="setBank" />
+      <label for="setAcctNo">Account number</label>
+      <input class="text" id="setAcctNo" inputmode="numeric" placeholder="10 digits" />
+    </div>
+    <button class="btn primary" id="saveSettings">Save</button>
+    <div class="card" style="margin-top:12px">
+      <h2>Records</h2>
+      <p class="muted">Orders are saved on this phone. Download a copy now and then.</p>
+      <button class="btn" id="exportCsv">Download all orders (CSV)</button>
+      <button class="btn danger" id="clearAll">Delete all orders on this phone</button>
+    </div>
+  </section>
+
+  <!-- BANK OVERLAY -->
+  <section id="view-bank" class="hidden">
+    <div class="card bank">
+      <p class="muted">Pay by transfer to</p>
+      <div class="acct" id="bAcct">—</div>
+      <div class="name" id="bName"></div>
+      <div class="muted" id="bBank"></div>
+      <p style="font-size:26px;font-weight:800;margin:14px 0 4px" id="bAmount"></p>
+      <button class="btn primary" id="closeBank">Done</button>
+    </div>
+  </section>
+</main>
+
+<nav>
+  <button data-view="new" class="on"><span class="ico">➕</span>New order</button>
+  <button data-view="queue"><span class="ico">⏳</span><span>Queue<span class="badge hidden" id="qBadge">0</span></span></button>
+  <button data-view="today"><span class="ico">📊</span>Today</button>
+  <button data-view="settings"><span class="ico">⚙️</span>Settings</button>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script>
+// Lois Akara: order taking, queue and daily totals. Everything is stored on this phone.
+const naira = (n) => "₦" + Math.round(n).toLocaleString("en-NG");
+const todayKey = () => new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD, local time
+const $ = (id) => document.getElementById(id);
+
+const DEFAULTS = {
+  shop: "Lois Akara",
+  bank: { name: "Lois Nanji Miri", bank: "PalmPay", number: "" },
+  items: [
+    { id: "akara", name: "Akara", price: 50, unit: "akara", byAmount: true, chips: [100, 200, 300, 500, 1000] },
+    { id: "puff", name: "Puff-puff", price: 100, unit: "puff-puff", byAmount: true, chips: [100, 200, 300, 500, 1000] },
+    { id: "kunu", name: "Kunu Gyada", price: 300, unit: "cup", byAmount: false, chips: [] },
+  ],
+};
+
+function load(key, fallback) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
+}
+function save(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch { toast("Could not save on this phone"); return false; }
+}
+
+let settings = load("loisAkara.settings", DEFAULTS);
+// Keep any new defaults (items added in later versions) without losing her changes.
+settings = { ...DEFAULTS, ...settings, bank: { ...DEFAULTS.bank, ...(settings.bank || {}) } };
+let orders = load("loisAkara.orders", []);
+
+// Draft order: for each item, either an amount in naira or a quantity.
+const draft = {};
+function resetDraft() {
+  for (const it of settings.items) draft[it.id] = { mode: it.byAmount ? "amount" : "qty", amount: 0, qty: 0 };
+  draft.pay = null;
+  $("custName").value = "";
+}
+
+function lineFor(it) {
+  const d = draft[it.id];
+  if (d.mode === "amount") {
+    const qty = Math.floor(d.amount / it.price);
+    return { qty, cost: qty * it.price, extra: d.amount - qty * it.price };
+  }
+  return { qty: d.qty, cost: d.qty * it.price, extra: 0 };
+}
+
+function renderItems() {
+  const box = $("items");
+  box.innerHTML = "";
+  for (const it of settings.items) {
+    const d = draft[it.id];
+    const card = document.createElement("div");
+    card.className = "card item";
+    const canToggle = it.byAmount;
+    card.innerHTML = `
+      <div class="row">
+        <div><h3>${it.name}</h3><div class="price">${naira(it.price)} per ${it.unit === "cup" ? "cup" : "piece"}</div></div>
+        ${canToggle ? `<div class="mode"><button data-m="amount" class="${d.mode === "amount" ? "on" : ""}">₦ Amount</button><button data-m="qty" class="${d.mode === "qty" ? "on" : ""}">Qty</button></div>` : ""}
+      </div>
+      ${d.mode === "amount"
+        ? `<div class="chips">${it.chips.map((c) => `<button class="chip${d.amount === c ? " on" : ""}" data-chip="${c}">${naira(c)}</button>`).join("")}</div>
+           <div class="entry"><input inputmode="numeric" placeholder="Other amount, e.g. 450" value="${d.amount || ""}" data-amount /></div>`
+        : `<div class="entry"><button class="step" data-step="-1">−</button><input inputmode="numeric" placeholder="0" value="${d.qty || ""}" data-qty style="text-align:center" /><button class="step" data-step="1">+</button></div>`}
+      <div class="row"><div class="result" data-result></div><button class="clear" data-clear>Clear</button></div>`;
+    card.querySelectorAll("[data-m]").forEach((b) => b.onclick = () => { d.mode = b.dataset.m; d.amount = 0; d.qty = 0; renderItems(); });
+    card.querySelectorAll("[data-chip]").forEach((b) => b.onclick = () => { d.amount = Number(b.dataset.chip); renderItems(); });
+    const amt = card.querySelector("[data-amount]");
+    if (amt) amt.oninput = () => { d.amount = Math.max(0, parseInt(amt.value.replace(/\D/g, "")) || 0); updateResult(card, it); updateTotal(); };
+    const qty = card.querySelector("[data-qty]");
+    if (qty) qty.oninput = () => { d.qty = Math.max(0, parseInt(qty.value.replace(/\D/g, "")) || 0); updateResult(card, it); updateTotal(); };
+    card.querySelectorAll("[data-step]").forEach((b) => b.onclick = () => { d.qty = Math.max(0, d.qty + Number(b.dataset.step)); renderItems(); });
+    card.querySelector("[data-clear]").onclick = () => { d.amount = 0; d.qty = 0; renderItems(); };
+    updateResult(card, it);
+    box.appendChild(card);
+  }
+  updateTotal();
+}
+
+function updateResult(card, it) {
+  const { qty, cost, extra } = lineFor(it);
+  const el = card.querySelector("[data-result]");
+  if (!qty && !extra) { el.textContent = ""; return; }
+  const name = it.unit === "cup" ? (qty === 1 ? "cup" : "cups") : it.unit;
+  el.innerHTML = `${qty} ${name} = ${naira(cost)}` + (extra ? ` <span class="extra">· ${naira(extra)} left over</span>` : "");
+}
+
+function currentLines() {
+  return settings.items
+    .map((it) => ({ it, ...lineFor(it) }))
+    .filter((l) => l.qty > 0);
+}
+
+function updateTotal() {
+  const lines = currentLines();
+  const total = lines.reduce((s, l) => s + l.cost, 0);
+  $("sum").textContent = naira(total);
+  $("sumLines").textContent = lines.length ? lines.map((l) => `${l.qty} ${l.it.name.toLowerCase()}`).join(" · ") : "Nothing added yet";
+  $("addOrder").disabled = !lines.length;
+  document.querySelectorAll("#payBtns button").forEach((b) => b.classList.toggle("on", b.dataset.pay === draft.pay));
+  $("showBank").classList.toggle("hidden", draft.pay !== "transfer");
+}
+
+// Order numbers start again at 1 each day.
+function nextNumber() {
+  const t = todayKey();
+  return orders.filter((o) => o.day === t).reduce((m, o) => Math.max(m, o.no), 0) + 1;
+}
+
+function addOrder() {
+  const lines = currentLines();
+  if (!lines.length) return;
+  const order = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    day: todayKey(),
+    no: nextNumber(),
+    at: new Date().toISOString(),
+    name: $("custName").value.trim(),
+    items: lines.map((l) => ({ id: l.it.id, name: l.it.name, qty: l.qty, price: l.it.price, cost: l.cost })),
+    total: lines.reduce((s, l) => s + l.cost, 0),
+    pay: draft.pay || "unpaid",
+    status: "waiting",
+  };
+  orders.push(order);
+  save("loisAkara.orders", orders);
+  toast(`Order #${order.no} added: ${naira(order.total)}`);
+  resetDraft();
+  renderItems();
+  refreshHeader();
+}
+
+function describe(o) { return o.items.map((i) => `${i.qty} ${i.name.toLowerCase()}`).join(" · "); }
+function payTag(o) {
+  return { cash: '<span class="tag cash">Cash ✓</span>', transfer: '<span class="tag transfer">Transfer ✓</span>', unpaid: '<span class="tag unpaid">Not paid</span>' }[o.pay];
+}
+function time(o) { return new Date(o.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); }
+
+function renderQueue() {
+  const waiting = orders.filter((o) => o.day === todayKey() && o.status !== "done");
+  const box = $("queue");
+  if (!waiting.length) { box.innerHTML = '<div class="empty">No one waiting 🎉</div>'; return; }
+  box.innerHTML = "";
+  for (const o of waiting) {
+    const el = document.createElement("div");
+    el.className = "card order" + (o.status === "ready" ? " ready" : "");
+    el.innerHTML = `
+      <div class="row"><span class="num">#${o.no}${o.name ? ` <span style="font-size:17px;color:var(--ink)">${escapeHtml(o.name)}</span>` : ""}</span><span class="muted">${time(o)}</span></div>
+      <div class="what">${describe(o)}</div>
+      <div class="row"><b>${naira(o.total)}</b><span>${payTag(o)} ${o.status === "ready" ? '<span class="tag ready">Ready</span>' : ""}</span></div>
+      <div class="actions">
+        ${o.pay === "unpaid" ? '<button data-a="cash">Paid cash</button><button data-a="transfer">Paid transfer</button>' : ""}
+        ${o.status === "waiting" ? '<button data-a="ready">Ready</button>' : ""}
+        <button class="primary" data-a="done">Collected ✓</button>
+        <button data-a="cancel">Cancel</button>
+      </div>`;
+    el.querySelectorAll("[data-a]").forEach((b) => b.onclick = () => act(o.id, b.dataset.a));
+    box.appendChild(el);
+  }
+}
+
+function act(id, action) {
+  const o = orders.find((x) => x.id === id);
+  if (!o) return;
+  if (action === "cash" || action === "transfer") o.pay = action;
+  if (action === "ready") o.status = "ready";
+  if (action === "done") {
+    if (o.pay === "unpaid" && !confirm(`#${o.no} has not paid. Mark as collected anyway?`)) return;
+    o.status = "done"; o.doneAt = new Date().toISOString();
+  }
+  if (action === "cancel") {
+    if (!confirm(`Cancel order #${o.no}?`)) return;
+    o.status = "done"; o.cancelled = true;
+  }
+  save("loisAkara.orders", orders);
+  renderQueue(); refreshHeader();
+}
+
+function renderToday() {
+  const list = orders.filter((o) => o.day === todayKey() && !o.cancelled);
+  const sum = (f) => list.filter(f).reduce((s, o) => s + o.total, 0);
+  const qtyOf = (id) => list.reduce((s, o) => s + (o.items.find((i) => i.id === id)?.qty || 0), 0);
+  const stats = [
+    ["Orders", list.length],
+    ["Total sales", naira(sum(() => true))],
+    ["Cash", naira(sum((o) => o.pay === "cash"))],
+    ["Transfer", naira(sum((o) => o.pay === "transfer"))],
+    ["Not yet paid", naira(sum((o) => o.pay === "unpaid"))],
+    ...settings.items.map((it) => [it.name + " sold", qtyOf(it.id)]),
+  ];
+  $("stats").innerHTML = stats.map(([k, v]) => `<div class="stat"><b>${v}</b><span>${k}</span></div>`).join("");
+  const all = orders.filter((o) => o.day === todayKey()).slice().reverse();
+  $("history").innerHTML = all.length
+    ? all.map((o) => `<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)"><div><b>#${o.no}</b> ${o.name ? escapeHtml(o.name) + " · " : ""}<span class="muted">${describe(o)}</span>${o.cancelled ? ' <span class="tag unpaid">Cancelled</span>' : ""}</div><div style="text-align:right;white-space:nowrap">${naira(o.total)}<br>${payTag(o)}</div></div>`).join("")
+    : '<div class="empty">No orders yet today</div>';
+}
+
+function renderSettings() {
+  $("setName").value = settings.shop;
+  $("setAcctName").value = settings.bank.name;
+  $("setBank").value = settings.bank.bank;
+  $("setAcctNo").value = settings.bank.number;
+  $("setPrices").innerHTML = settings.items.map((it) => `<div class="row" style="margin:6px 0"><span>${it.name}</span><input class="text" style="max-width:130px" inputmode="numeric" data-price="${it.id}" value="${it.price}" /></div>`).join("");
+}
+
+function saveSettings() {
+  settings.shop = $("setName").value.trim() || DEFAULTS.shop;
+  settings.bank = { name: $("setAcctName").value.trim(), bank: $("setBank").value.trim(), number: $("setAcctNo").value.replace(/\D/g, "") };
+  document.querySelectorAll("[data-price]").forEach((inp) => {
+    const it = settings.items.find((x) => x.id === inp.dataset.price);
+    const v = parseInt(inp.value.replace(/\D/g, ""));
+    if (it && v > 0) it.price = v;
+  });
+  if (save("loisAkara.settings", settings)) toast("Saved");
+  resetDraft(); renderItems(); refreshHeader();
+}
+
+function showBank() {
+  $("bAcct").textContent = settings.bank.number || "Add it in Settings";
+  $("bName").textContent = settings.bank.name;
+  $("bBank").textContent = settings.bank.bank;
+  const total = currentLines().reduce((s, l) => s + l.cost, 0);
+  $("bAmount").textContent = total ? naira(total) : "";
+  show("bank");
+}
+
+function exportCsv() {
+  const rows = [["date", "order", "time", "name", "items", "total", "payment", "status"]];
+  for (const o of orders) rows.push([o.day, o.no, time(o), o.name, describe(o), o.total, o.pay, o.cancelled ? "cancelled" : o.status]);
+  const csv = rows.map((r) => r.map((c) => `"${String(c ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+  a.download = `lois-akara-orders-${todayKey()}.csv`;
+  a.click();
+}
+
+function escapeHtml(s) { return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]); }
+let toastTimer;
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 1800); }
+
+function refreshHeader() {
+  $("shopName").textContent = settings.shop;
+  document.title = settings.shop;
+  $("nextNo").textContent = "Next #" + nextNumber();
+  $("today").textContent = new Date().toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "short" });
+  const waiting = orders.filter((o) => o.day === todayKey() && o.status !== "done").length;
+  $("qBadge").textContent = waiting;
+  $("qBadge").classList.toggle("hidden", !waiting);
+}
+
+function show(view) {
+  for (const v of ["new", "queue", "today", "settings", "bank"]) $("view-" + v).classList.toggle("hidden", v !== view);
+  document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("on", b.dataset.view === view));
+  if (view === "queue") renderQueue();
+  if (view === "today") renderToday();
+  if (view === "settings") renderSettings();
+  window.scrollTo(0, 0);
+}
+
+document.querySelectorAll("nav button").forEach((b) => b.onclick = () => show(b.dataset.view));
+document.querySelectorAll("#payBtns button").forEach((b) => b.onclick = () => { draft.pay = draft.pay === b.dataset.pay ? null : b.dataset.pay; updateTotal(); });
+$("addOrder").onclick = addOrder;
+$("showBank").onclick = showBank;
+$("closeBank").onclick = () => show("new");
+$("saveSettings").onclick = saveSettings;
+$("exportCsv").onclick = exportCsv;
+$("clearAll").onclick = () => { if (confirm("Delete ALL orders on this phone? Download a copy first.")) { orders = []; save("loisAkara.orders", orders); refreshHeader(); toast("All orders deleted"); } };
+
+resetDraft();
+renderItems();
+refreshHeader();
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>

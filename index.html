@@ -82,7 +82,7 @@
   .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
   .tile { position: relative; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); border-radius: 18px; padding: 16px 8px 12px; text-align: center; transition: transform .12s ease; }
   .tile:active { transform: scale(.97); }
-  .tile .art { width: 72px; height: 72px; margin: 0 auto 10px; border-radius: 50%; overflow: hidden; background: var(--thumb); box-shadow: 0 4px 12px rgba(0,0,0,.12); }
+  .tile .art { width: 62px; height: 62px; margin: 0 auto 8px; display: grid; place-items: center; border-radius: 50%; overflow: hidden; background: radial-gradient(circle, var(--thumb) 55%, transparent 72%); }
   .tile .art img, .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .tile .name { font-weight: 600; font-size: 14px; line-height: 1.2; }
   .tile .price { color: var(--muted); font-size: 12px; margin-top: 3px; }
@@ -288,7 +288,7 @@
     <div class="set-row" style="display:block"><label>Colour</label><div class="swatches" id="swatches"></div><div class="swatch-name" id="swatchName"></div></div></div>
     <div class="h">Menu photos</div>
     <div class="card" id="setPhotos"></div>
-    <p class="note" style="margin-top:8px">Tap Change to use a photo of your own akara, puff-puff or kunu.</p>
+    <p class="note" style="margin-top:8px">Tap Change to use a photo of your own akara, puff-puff or kunu. Reset brings the drawing back.</p>
     <input type="file" accept="image/*" id="photoFile" class="hidden" />
     <div class="h">Prices</div>
     <div class="card" id="setPrices"></div>
@@ -306,7 +306,6 @@
     <button class="btn block" id="exportCsv">Download all orders</button>
     <div style="height:10px"></div>
     <button class="btn danger block" id="clearAll">Delete all orders</button>
-    <p class="note" style="margin-top:22px;font-size:11px">Starter photos from Wikimedia Commons, CC BY-SA 4.0: akara by AkinkuotuFunmi, puff-puff by Halima Waziri, kunu by Agan56. Cropped.</p>
   </section>
 
   <!-- BANK -->
@@ -376,8 +375,8 @@ const ART = {
 };
 document.querySelectorAll("[data-icon]").forEach((el) => (el.innerHTML = ICONS[el.dataset.icon]));
 
-// Menu photos: starter photos ship with the app; her own replace them and stay on this phone.
-const PHOTOS = { akara: "photos/akara.jpg", puff: "photos/puff.jpg", kunu: "photos/kunu.jpg" };
+// Menu pictures: the drawings, unless she adds her own photo (kept on this phone).
+const PHOTOS = {};
 let myPhotos = {};
 try { myPhotos = JSON.parse(localStorage.getItem("loisAkara.photos") || "{}"); } catch {}
 const photoSrc = (id) => myPhotos[id] || PHOTOS[id];
@@ -648,7 +647,7 @@ function renderSettings() {
   $("setPrices").innerHTML = settings.items.map((it) => `<div class="set-row"><label for="p-${it.id}">${it.name}<small>₦ ${per(it)}</small></label><input id="p-${it.id}" inputmode="numeric" data-price="${it.id}" value="${it.price}" /></div>`).join("");
 }
 function renderPhotos() {
-  $("setPhotos").innerHTML = settings.items.map((it) => `<div class="set-row"><div class="thumb">${pic(it.id)}</div><label>${it.name}<small>${myPhotos[it.id] ? "Your photo" : "Starter photo"}</small></label>
+  $("setPhotos").innerHTML = settings.items.map((it) => `<div class="set-row"><div class="thumb">${pic(it.id)}</div><label>${it.name}<small>${myPhotos[it.id] ? "Your photo" : "Drawing"}</small></label>
     ${myPhotos[it.id] ? `<button class="btn" data-reset-photo="${it.id}" style="padding:8px 12px;font-size:13px">Reset</button>` : ""}<button class="btn" data-photo="${it.id}" style="padding:8px 14px;font-size:13px">Change</button></div>`).join("");
   $("setPhotos").querySelectorAll("[data-photo]").forEach((b) => (b.onclick = () => { $("photoFile").dataset.item = b.dataset.photo; $("photoFile").value = ""; $("photoFile").click(); }));
   $("setPhotos").querySelectorAll("[data-reset-photo]").forEach((b) => (b.onclick = () => { delete myPhotos[b.dataset.resetPhoto]; savePhotos(); }));

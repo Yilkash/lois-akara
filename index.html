@@ -193,6 +193,25 @@
   .start b { display: block; font-size: 17px; font-weight: 600; }
   .start small { opacity: .75; font-size: 13px; }
   [data-goqueue] { cursor: pointer; }
+  .title-wrap { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .update { position: fixed; left: 16px; right: 16px; top: calc(10px + env(safe-area-inset-top)); z-index: 35; max-width: 528px; margin: 0 auto; border: 0; border-radius: 14px;
+    background: var(--ink); color: var(--bg); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+  .update b { color: var(--accent); }
+  .chip.old { background: var(--accent); color: #23170d; }
+  .chip.old::before { display: none; }
+  .tabs2 { display: inline-grid; grid-template-columns: 1fr 1fr; background: var(--surface-2); border-radius: 10px; padding: 3px; }
+  .tabs2 button { border: 0; background: none; color: var(--muted); padding: 7px 14px; border-radius: 8px; font-weight: 500; font-size: 13px; }
+  .tabs2 button.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.1); }
+  .bars { display: flex; align-items: flex-end; gap: 4px; height: 120px; margin: 16px 0 4px; }
+  .bars div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 4px; min-width: 0; }
+  .bars i { display: block; width: 100%; max-width: 30px; border-radius: 5px 5px 2px 2px; background: var(--line-2); min-height: 3px; }
+  .bars i.has { background: var(--accent); }
+  .bars i.best { background: var(--brand); }
+  .bars span { font-size: 10px; color: var(--muted); }
+  .best-line { font-size: 13px; color: var(--ink-2); margin-top: 6px; }
+  .best-line b { color: var(--ink); }
+  .day-row { cursor: pointer; }
+  .day-row .chev { color: var(--muted); }
   .split { height: 6px; border-radius: 3px; background: var(--surface-2); display: flex; overflow: hidden; margin: 14px 0 6px; }
   .split i { display: block; height: 100%; }
   .legend { display: flex; gap: 14px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
@@ -250,7 +269,7 @@
 <div class="wrap">
   <header>
     <div class="top">
-      <div><div class="hello" id="hello">Good day</div><div class="shop" id="pageTitle">New order</div></div>
+      <div class="title-wrap"><button class="round hidden" id="backBtn" aria-label="Back"></button><div><div class="hello" id="hello">Good day</div><div class="shop" id="pageTitle">New order</div></div></div>
       <div class="head-right">
         <button class="round" id="themeBtn" aria-label="Turn on dark mode"></button>
       </div>
@@ -284,9 +303,19 @@
     <div id="queue"></div>
   </section>
 
-  <!-- TODAY -->
+  <!-- HOME -->
   <section id="view-home" class="view hidden">
     <div id="homeBody"></div>
+  </section>
+
+  <!-- PAST DAYS -->
+  <section id="view-history" class="view hidden">
+    <div id="historyBody"></div>
+  </section>
+
+  <!-- ONE DAY -->
+  <section id="view-day" class="view hidden">
+    <div id="dayBody"></div>
   </section>
 
   <!-- SETTINGS -->
@@ -368,6 +397,7 @@
 </div>
 
 <div class="toast" id="toast"></div>
+<button class="update hidden" id="updateBar"><span>New version ready</span><b>Tap to update</b></button>
 
 <script>
 // Lois Akara: order taking, queue and daily totals. Everything is stored on this phone.
@@ -575,7 +605,7 @@ const time = (o) => new Date(o.at).toLocaleTimeString([], { hour: "numeric", min
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
 function renderQueue() {
-  const waiting = orders.filter((o) => o.day === todayKey() && o.status !== "done");
+  const waiting = waitingOrders();
   $("qCount").textContent = waiting.length || "";
   const box = $("queue");
   if (!waiting.length) {
@@ -589,7 +619,7 @@ function renderQueue() {
         <div class="what"><b>${o.name ? esc(o.name) : "Order #" + o.no}</b><div>${describe(o)}</div></div>
         <div class="amt mono">${naira(o.total)}</div>
       </div>
-      <div class="tags">${payChip(o)}${o.status === "ready" ? '<span class="chip ready">Ready</span>' : ""}<span class="time">${time(o)}</span></div>
+      <div class="tags">${oldTag(o)}${payChip(o)}${o.status === "ready" ? '<span class="chip ready">Ready</span>' : ""}<span class="time">${time(o)}</span></div>
       <div class="order-actions">
         ${o.pay === "unpaid" ? `<button class="btn" data-a="cash" data-id="${o.id}">Paid cash</button><button class="btn" data-a="transfer" data-id="${o.id}">Paid transfer</button>` : o.status === "waiting" ? `<button class="btn" data-a="ready" data-id="${o.id}">Mark ready</button>` : ""}
         <button class="btn primary" data-a="done" data-id="${o.id}">Collected</button>
@@ -639,49 +669,138 @@ async function act(id, action) {
   renderQueue(); refreshHeader();
 }
 
-function renderHome() {
-  const list = orders.filter((o) => o.day === todayKey() && !o.cancelled);
+// --- days ---
+const parseDay = (key) => { const [y, m, d] = key.split("-").map(Number); return new Date(y, m - 1, d); };
+const shiftDay = (key, n) => { const d = parseDay(key); d.setDate(d.getDate() + n); return d.toLocaleDateString("en-CA"); };
+function dayName(key, long = false) {
+  if (key === todayKey()) return "Today";
+  if (key === shiftDay(todayKey(), -1)) return "Yesterday";
+  return parseDay(key).toLocaleDateString("en-NG", long ? { weekday: "long", day: "numeric", month: "long" } : { weekday: "short", day: "numeric", month: "short" });
+}
+const fullDate = (key) => parseDay(key).toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long" });
+function dayStats(day) {
+  const all = orders.filter((o) => o.day === day);
+  const list = all.filter((o) => !o.cancelled);
   const sum = (f) => list.filter(f).reduce((s, o) => s + o.total, 0);
-  const total = sum(() => true), cash = sum((o) => o.pay === "cash"), transfer = sum((o) => o.pay === "transfer"), unpaid = sum((o) => o.pay === "unpaid");
-  const pct = (v) => (total ? (v / total) * 100 : 0);
-  const sold = settings.items.map((it) => ({ it, qty: list.reduce((s, o) => s + (o.items.find((i) => i.id === it.id)?.qty || 0), 0) }));
-  const maxQty = Math.max(1, ...sold.map((s) => s.qty));
-  const all = orders.filter((o) => o.day === todayKey()).slice().reverse();
-  const date = new Date().toLocaleDateString("en-NG", { weekday: "long", day: "numeric", month: "long" });
-  const waiting = orders.filter((o) => o.day === todayKey() && o.status !== "done");
+  return {
+    day, all, list,
+    total: sum(() => true), cash: sum((o) => o.pay === "cash"), transfer: sum((o) => o.pay === "transfer"), unpaid: sum((o) => o.pay === "unpaid"),
+    sold: settings.items.map((it) => ({ it, qty: list.reduce((s, o) => s + o.items.filter((i) => i.id === it.id).reduce((a, i) => a + i.qty, 0), 0) })),
+  };
+}
+const daysWithOrders = () => [...new Set(orders.map((o) => o.day))].sort().reverse();
+const waitingOrders = () => orders.filter((o) => o.status !== "done");
+const oldTag = (o) => (o.day !== todayKey() ? `<span class="chip old">${dayName(o.day)}</span>` : "");
+
+function salesCard(st, label) {
+  const pct = (v) => (st.total ? (v / st.total) * 100 : 0);
+  return `
+    <div class="hero">
+      <div class="label">${label}</div>
+      <div class="num mono">${naira(st.total)}</div>
+      <div class="sub">${fullDate(st.day)}</div>
+      <div class="cols">
+        <div><span class="label">Orders</span><b>${st.list.length}</b></div>
+        <div><span class="label">Cash</span><b class="mono">${naira(st.cash)}</b></div>
+        <div><span class="label">Transfer</span><b class="mono">${naira(st.transfer)}</b></div>
+      </div>
+    </div>
+    ${st.total ? `<div class="split"><i style="width:${pct(st.cash)}%;background:var(--ok)"></i><i style="width:${pct(st.transfer)}%;background:var(--blue)"></i><i style="width:${pct(st.unpaid)}%;background:var(--warn)"></i></div>
+    <div class="legend"><span><em style="background:var(--ok)"></em>Cash</span><span><em style="background:var(--blue)"></em>Transfer</span>${st.unpaid ? `<span><em style="background:var(--warn)"></em>Not paid ${naira(st.unpaid)}</span>` : ""}</div>` : ""}`;
+}
+function soldCard(st, title) {
+  const maxQty = Math.max(1, ...st.sold.map((s) => s.qty));
+  return `
+    <div class="h">${title}</div>
+    <div class="card">${st.sold.map((s) => `
+      <div class="row"><div class="thumb">${pic(s.it.id)}</div>
+      <div class="what"><b>${s.it.name}</b><div class="meter"><i style="width:${(s.qty / maxQty) * 100}%"></i></div></div>
+      <div class="amt" style="width:92px;text-align:right">${s.qty} <span style="color:var(--muted);font-size:13px">${unitName(s.it, s.qty)}</span></div></div>`).join("")}</div>`;
+}
+function ordersCard(st, emptyText) {
+  const all = st.all.slice().reverse();
+  return `
+    <div class="h"><span>Orders<small>${all.length || ""}</small></span></div>
+    <div class="card">${all.length ? all.map((o) => `
+      <div class="row"><div class="no" style="width:36px;height:36px;font-size:14px">${o.no}</div>
+      <div class="what"><b>${o.name ? esc(o.name) : "Order #" + o.no}</b><span>${describe(o)} · ${time(o)}</span></div>
+      <div style="text-align:right"><div class="amt mono" ${o.cancelled ? 'style="text-decoration:line-through;color:var(--muted)"' : ""}>${naira(o.total)}</div>${o.cancelled ? '<span class="chip cancel">Cancelled</span>' : o.status !== "done" ? '<span class="chip old">Waiting</span>' : payChip(o)}</div></div>`).join("") : `<div class="empty" style="padding:24px 0">${emptyText}</div>`}</div>`;
+}
+function dayRow(key) {
+  const st = dayStats(key);
+  return `<div class="row day-row" data-day="${key}"><div class="what"><b>${dayName(key)}${key === shiftDay(todayKey(), -1) ? ` <span style="color:var(--muted);font-weight:400;font-size:13px">· ${parseDay(key).toLocaleDateString("en-NG", { weekday: "short", day: "numeric", month: "short" })}</span>` : ""}</b><span>${st.list.length} order${st.list.length === 1 ? "" : "s"}</span></div><div class="amt mono">${naira(st.total)}</div><span class="chev">${ICONS.chev}</span></div>`;
+}
+const wireDays = (box) => box.querySelectorAll("[data-day]").forEach((r) => (r.onclick = () => openDay(r.dataset.day)));
+
+function renderHome() {
+  const st = dayStats(todayKey());
+  const waiting = waitingOrders();
+  const past = daysWithOrders().filter((d) => d !== todayKey());
   $("homeBody").innerHTML = `
     <button class="start" id="startOrder"><span class="plus">${ICONS.plus}</span><span><b>New order</b><small>Order #${nextNumber()} is next</small></span>${ICONS.chev}</button>
     <div class="h">Today</div>
-    <div class="hero">
-      <div class="label">Total sales</div>
-      <div class="num mono">${naira(total)}</div>
-      <div class="sub">${date}</div>
-      <div class="cols">
-        <div><span class="label">Orders</span><b>${list.length}</b></div>
-        <div><span class="label">Cash</span><b class="mono">${naira(cash)}</b></div>
-        <div><span class="label">Transfer</span><b class="mono">${naira(transfer)}</b></div>
-      </div>
-    </div>
-    ${total ? `<div class="split"><i style="width:${pct(cash)}%;background:var(--ok)"></i><i style="width:${pct(transfer)}%;background:var(--blue)"></i><i style="width:${pct(unpaid)}%;background:var(--warn)"></i></div>
-    <div class="legend"><span><em style="background:var(--ok)"></em>Cash</span><span><em style="background:var(--blue)"></em>Transfer</span>${unpaid ? `<span><em style="background:var(--warn)"></em>Not paid ${naira(unpaid)}</span>` : ""}</div>` : ""}
+    ${salesCard(st, "Total sales")}
     <div class="h"><span>Waiting<small>${waiting.length || ""}</small></span>${waiting.length ? '<button id="seeQueue">See all</button>' : ""}</div>
     <div class="card">${waiting.length ? waiting.slice(0, 3).map((o) => `
       <div class="row" data-goqueue><div class="no" style="width:36px;height:36px;font-size:14px">${o.no}</div>
       <div class="what"><b>${o.name ? esc(o.name) : "Order #" + o.no}</b><span>${describe(o)}</span></div>
-      <div style="text-align:right"><div class="amt mono">${naira(o.total)}</div>${o.status === "ready" ? '<span class="chip ready">Ready</span>' : payChip(o)}</div></div>`).join("") : '<div class="empty" style="padding:22px 0">No one waiting</div>'}</div>
-    <div class="h">Sold today</div>
-    <div class="card">${sold.map((s) => `
-      <div class="row"><div class="thumb">${pic(s.it.id)}</div>
-      <div class="what"><b>${s.it.name}</b><div class="meter"><i style="width:${(s.qty / maxQty) * 100}%"></i></div></div>
-      <div class="amt" style="width:92px;text-align:right">${s.qty} <span style="color:var(--muted);font-size:13px">${unitName(s.it, s.qty)}</span></div></div>`).join("")}</div>
-    <div class="h"><span>All orders<small>${all.length || ""}</small></span></div>
-    <div class="card">${all.length ? all.map((o) => `
-      <div class="row"><div class="no" style="width:36px;height:36px;font-size:14px">${o.no}</div>
-      <div class="what"><b>${o.name ? esc(o.name) : "Order #" + o.no}</b><span>${describe(o)} · ${time(o)}</span></div>
-      <div style="text-align:right"><div class="amt mono">${naira(o.total)}</div>${o.cancelled ? '<span class="chip cancel">Cancelled</span>' : payChip(o)}</div></div>`).join("") : '<div class="empty" style="padding:24px 0">No orders yet today</div>'}</div>`;
+      <div style="text-align:right"><div class="amt mono">${naira(o.total)}</div>${oldTag(o) || (o.status === "ready" ? '<span class="chip ready">Ready</span>' : payChip(o))}</div></div>`).join("") : '<div class="empty" style="padding:22px 0">No one waiting</div>'}</div>
+    <div class="h"><span>Past days</span>${past.length ? '<button id="seeHistory">See all</button>' : ""}</div>
+    <div class="card">${past.length ? past.slice(0, 3).map(dayRow).join("") : '<div class="empty" style="padding:22px 0">Past days will show up here</div>'}</div>
+    ${soldCard(st, "Sold today")}
+    ${ordersCard(st, "No orders yet today")}`;
   $("startOrder").onclick = () => show("new");
   $("seeQueue") && ($("seeQueue").onclick = () => show("queue"));
+  $("seeHistory") && ($("seeHistory").onclick = () => show("history"));
   $("homeBody").querySelectorAll("[data-goqueue]").forEach((r) => (r.onclick = () => show("queue")));
+  wireDays($("homeBody"));
+}
+
+// Past days: a 7-day or this-month summary with a bar per day, then every day that had orders.
+let period = "week";
+try { period = localStorage.getItem("loisAkara.period") || "week"; } catch {}
+function renderHistory() {
+  const today = todayKey();
+  const days = [];
+  if (period === "week") for (let i = 6; i >= 0; i--) days.push(shiftDay(today, -i));
+  else { const d = parseDay(today); for (let i = 1; i <= d.getDate(); i++) days.push(new Date(d.getFullYear(), d.getMonth(), i).toLocaleDateString("en-CA")); }
+  const stats = days.map(dayStats);
+  const total = stats.reduce((s, x) => s + x.total, 0), cash = stats.reduce((s, x) => s + x.cash, 0), transfer = stats.reduce((s, x) => s + x.transfer, 0);
+  const count = stats.reduce((s, x) => s + x.list.length, 0);
+  const max = Math.max(1, ...stats.map((x) => x.total));
+  const best = stats.reduce((b, x) => (x.total > (b?.total || 0) ? x : b), null);
+  const all = daysWithOrders();
+  const label = (x) => (period === "week" ? parseDay(x.day).toLocaleDateString("en-NG", { weekday: "short" }).slice(0, 2) : parseDay(x.day).getDate() % 5 === 0 || parseDay(x.day).getDate() === 1 ? parseDay(x.day).getDate() : "");
+  $("historyBody").innerHTML = `
+    <div class="h" style="margin-top:12px"><div class="tabs2" id="periodTabs"><button data-p="week" class="${period === "week" ? "on" : ""}">Last 7 days</button><button data-p="month" class="${period === "month" ? "on" : ""}">This month</button></div></div>
+    <div class="hero">
+      <div class="label">${period === "week" ? "Last 7 days" : parseDay(today).toLocaleDateString("en-NG", { month: "long" })}</div>
+      <div class="num mono">${naira(total)}</div>
+      <div class="sub">${count} order${count === 1 ? "" : "s"}</div>
+      <div class="cols">
+        <div><span class="label">Cash</span><b class="mono">${naira(cash)}</b></div>
+        <div><span class="label">Transfer</span><b class="mono">${naira(transfer)}</b></div>
+        <div><span class="label">Per day</span><b class="mono">${naira(total / days.length)}</b></div>
+      </div>
+    </div>
+    <div class="bars">${stats.map((x) => `<div data-day="${x.day}" title="${dayName(x.day)} ${naira(x.total)}"><i class="${x === best && x.total ? "best" : x.total ? "has" : ""}" style="height:${(x.total / max) * 100}%"></i><span>${label(x)}</span></div>`).join("")}</div>
+    ${best && best.total ? `<div class="best-line">Best day: <b>${fullDate(best.day)}</b>, ${naira(best.total)}</div>` : ""}
+    <div class="h">Every day</div>
+    <div class="card">${all.length ? all.map(dayRow).join("") : '<div class="empty" style="padding:24px 0">No orders yet</div>'}</div>`;
+  $("periodTabs").querySelectorAll("[data-p]").forEach((b) => (b.onclick = () => { period = b.dataset.p; try { localStorage.setItem("loisAkara.period", period); } catch {} renderHistory(); }));
+  wireDays($("historyBody"));
+}
+
+let openedDay = null;
+function openDay(day) {
+  if (day === todayKey()) return show("home");
+  openedDay = day;
+  show("day");
+}
+function renderDay() {
+  const st = dayStats(openedDay);
+  $("pageTitle").textContent = dayName(openedDay);
+  $("dayBody").innerHTML = `<div style="height:12px"></div>${salesCard(st, "Total sales")}${soldCard(st, "Sold")}${ordersCard(st, "No orders on this day")}`;
 }
 
 function renderSettings() {
@@ -746,27 +865,33 @@ function exportCsv() {
 let toastTimer;
 function toast(html) { const t = $("toast"); t.innerHTML = html; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 1900); }
 
-const TITLES = { home: "Lois Akara", new: "New order", queue: "Queue", settings: "Settings", bank: "Transfer" };
+const TITLES = { home: "Lois Akara", new: "New order", queue: "Queue", settings: "Settings", bank: "Transfer", history: "Past days", day: "Day" };
 let current = "home";
 function refreshHeader() {
   const h = new Date().getHours();
   const part = h < 5 || h >= 21 ? "Good night" : h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
   $("hello").textContent = `${part}, ${settings.bank.name.split(" ")[0] || "Lois"}`;
   document.title = settings.shop;
-  const waiting = orders.filter((o) => o.day === todayKey() && o.status !== "done").length;
+  const waiting = waitingOrders().length;
   $("qBadge").textContent = waiting;
   $("qBadge").classList.toggle("hidden", !waiting);
 }
+let previous = "home";
 function show(view) {
+  if (view !== current) previous = current;
   current = view;
-  for (const v of ["home", "new", "queue", "settings", "bank"]) $("view-" + v).classList.toggle("hidden", v !== view);
-  document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("on", b.dataset.view === view || (view === "bank" && b.dataset.view === "new")));
+  for (const v of ["home", "new", "queue", "settings", "bank", "history", "day"]) $("view-" + v).classList.toggle("hidden", v !== view);
+  const tab = { bank: "new", history: "home", day: "home" }[view] || view;
+  document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("on", b.dataset.view === tab));
+  $("backBtn").classList.toggle("hidden", view !== "history" && view !== "day");
   $("pageTitle").textContent = view === "home" ? settings.shop : TITLES[view];
   if (view === "queue") renderQueue();
   if (view === "home") renderHome();
   if (view === "settings") renderSettings();
+  if (view === "history") renderHistory();
+  if (view === "day") renderDay();
   refreshOrder();
-  if (view !== "bank") try { localStorage.setItem("loisAkara.view", view); } catch {}
+  if (view !== "bank" && view !== "day") try { localStorage.setItem("loisAkara.view", view); } catch {}
   window.scrollTo(0, 0);
 }
 
@@ -823,7 +948,24 @@ applyTheme(document.documentElement.dataset.theme === "dark");
 refreshHeader();
 let lastView = "home";
 try { lastView = localStorage.getItem("loisAkara.view") || "home"; } catch {}
-show(TITLES[lastView] && lastView !== "bank" ? lastView : "home");
+$("backBtn").innerHTML = ICONS.chev.replace("m9 6 6 6-6 6", "m15 6-6 6 6 6");
+$("backBtn").onclick = () => show(current === "day" && previous === "history" ? "history" : "home");
+show(TITLES[lastView] && lastView !== "bank" && lastView !== "day" ? lastView : "home");
+
+// Tell her when a newer version is online, so she doesn't need to close the app to get it.
+// APP_VERSION must match CACHE in sw.js; bump both together.
+const APP_VERSION = "lois-akara-v11";
+async function checkForUpdate() {
+  try {
+    const text = await (await fetch("sw.js?check=" + Date.now(), { cache: "no-store" })).text();
+    const live = (text.match(/CACHE = "([^"]+)"/) || [])[1];
+    $("updateBar").classList.toggle("hidden", !live || live === APP_VERSION);
+  } catch {}
+}
+$("updateBar").onclick = () => location.reload();
+document.addEventListener("visibilitychange", () => { if (!document.hidden) checkForUpdate(); });
+setInterval(checkForUpdate, 10 * 60 * 1000);
+checkForUpdate();
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 
 // Install from Settings. The browser offers its install prompt only once in a while, so keep it

@@ -210,7 +210,7 @@
   .bars span { font-size: 10px; color: var(--muted); }
   .best-line { font-size: 13px; color: var(--ink-2); margin-top: 6px; }
   .best-line b { color: var(--ink); }
-  .day-row { cursor: pointer; }
+  .day-row, .order-row { cursor: pointer; }
   .day-row .chev { color: var(--muted); }
   .split { height: 6px; border-radius: 3px; background: var(--surface-2); display: flex; overflow: hidden; margin: 14px 0 6px; }
   .split i { display: block; height: 100%; }
@@ -385,6 +385,21 @@
   <div class="actions">
     <button class="btn" id="sCancel">Cancel</button>
     <button class="btn primary" id="sAdd">Add</button>
+  </div>
+</div></div>
+
+<div class="scrim" id="oScrim"></div>
+<div class="sheet" id="oSheet"><div class="panel">
+  <div class="grab"></div>
+  <div class="sheet-head">
+    <div class="what"><h3 id="oTitle">Order</h3><span id="oWhen"></span></div>
+    <button class="x" id="oClose" aria-label="Close"></button>
+  </div>
+  <div class="tags" id="oTags" style="margin:12px 0 4px"></div>
+  <div id="oItems"></div>
+  <div class="actions" style="grid-template-columns:1fr 1fr;margin-top:18px">
+    <button class="btn danger" id="oDelete">Delete order</button>
+    <button class="btn primary" id="oDone">Done</button>
   </div>
 </div></div>
 
@@ -567,6 +582,7 @@ $("sPad").querySelectorAll("[data-k]").forEach((b) => (b.onclick = () => {
 }));
 document.querySelectorAll("#sMode button").forEach((b) => (b.onclick = () => { sheet.mode = b.dataset.m; sheet.input = ""; renderSheet(); }));
 $("sClose").innerHTML = ICONS.x;
+$("oClose").innerHTML = ICONS.x;
 $("sClose").onclick = closeSheet;
 $("sCancel").onclick = closeSheet;
 $("scrim").onclick = closeSheet;
@@ -722,7 +738,7 @@ function ordersCard(st, emptyText) {
   return `
     <div class="h"><span>Orders<small>${all.length || ""}</small></span></div>
     <div class="card">${all.length ? all.map((o) => `
-      <div class="row"><div class="no" style="width:36px;height:36px;font-size:14px">${o.no}</div>
+      <div class="row order-row" data-order="${o.id}"><div class="no" style="width:36px;height:36px;font-size:14px">${o.no}</div>
       <div class="what"><b>${o.name ? esc(o.name) : "Order #" + o.no}</b><span>${describe(o)} · ${time(o)}</span></div>
       <div style="text-align:right"><div class="amt mono" ${o.cancelled ? 'style="text-decoration:line-through;color:var(--muted)"' : ""}>${naira(o.total)}</div>${o.cancelled ? '<span class="chip cancel">Cancelled</span>' : o.status !== "done" ? '<span class="chip old">Waiting</span>' : payChip(o)}</div></div>`).join("") : `<div class="empty" style="padding:24px 0">${emptyText}</div>`}</div>`;
 }
@@ -754,6 +770,7 @@ function renderHome() {
   $("seeHistory") && ($("seeHistory").onclick = () => show("history"));
   $("homeBody").querySelectorAll("[data-goqueue]").forEach((r) => (r.onclick = () => show("queue")));
   wireDays($("homeBody"));
+  wireOrders($("homeBody"));
 }
 
 // Past days: a 7-day or this-month summary with a bar per day, then every day that had orders.
@@ -801,7 +818,42 @@ function renderDay() {
   const st = dayStats(openedDay);
   $("pageTitle").textContent = dayName(openedDay);
   $("dayBody").innerHTML = `<div style="height:12px"></div>${salesCard(st, "Total sales")}${soldCard(st, "Sold")}${ordersCard(st, "No orders on this day")}`;
+  wireOrders($("dayBody"));
 }
+
+// Tap an order to see it in full, and delete it if it was a mistake.
+const wireOrders = (box) => box.querySelectorAll("[data-order]").forEach((r) => (r.onclick = () => openOrder(r.dataset.order)));
+let shownOrder = null;
+function openOrder(id) {
+  const o = orders.find((x) => x.id === id);
+  if (!o) return;
+  shownOrder = id;
+  const status = o.cancelled ? '<span class="chip cancel">Cancelled</span>' : o.status !== "done" ? '<span class="chip old">Waiting</span>' : '<span class="chip ready">Collected</span>';
+  $("oTitle").textContent = o.name ? `${o.name} · #${o.no}` : `Order #${o.no}`;
+  $("oWhen").textContent = `${dayName(o.day, true)}, ${time(o)}`;
+  $("oItems").innerHTML = o.items.map((i) => `
+    <div class="row"><div class="thumb">${pic(i.id)}</div><div class="what"><b>${esc(i.name)}</b><span>${i.qty} × ${naira(i.price)}</span></div><div class="amt mono">${naira(i.cost)}</div></div>`).join("") +
+    `<div class="summary"><div class="total"><span>Total</span><span class="mono">${naira(o.total)}</span></div></div>`;
+  $("oTags").innerHTML = `${payChip(o)}${status}`;
+  $("oScrim").classList.add("open");
+  $("oSheet").classList.add("open");
+}
+function closeOrder() { $("oScrim").classList.remove("open"); $("oSheet").classList.remove("open"); shownOrder = null; }
+$("oClose").onclick = closeOrder;
+$("oDone").onclick = closeOrder;
+$("oScrim").onclick = closeOrder;
+$("oDelete").onclick = async () => {
+  const o = orders.find((x) => x.id === shownOrder);
+  if (!o) return;
+  const who = o.name ? `${o.name}'s order (#${o.no})` : `Order #${o.no}`;
+  if (!(await ask({ title: "Delete this order?", text: `${who}, ${naira(o.total)}, will be removed completely and won't count anywhere. This can't be undone.`, yes: "Delete", no: "Keep it", danger: true, icon: "trash" }))) return;
+  orders = orders.filter((x) => x.id !== o.id);
+  save("loisAkara.orders", orders);
+  closeOrder();
+  toast(`${ICONS.check} Order #${o.no} deleted`);
+  show(current);
+  refreshHeader();
+};
 
 function renderSettings() {
   $("setName").value = settings.shop;
@@ -954,7 +1006,7 @@ show(TITLES[lastView] && lastView !== "bank" && lastView !== "day" ? lastView : 
 
 // Tell her when a newer version is online, so she doesn't need to close the app to get it.
 // APP_VERSION must match CACHE in sw.js; bump both together.
-const APP_VERSION = "lois-akara-v12";
+const APP_VERSION = "lois-akara-v13";
 async function checkForUpdate() {
   try {
     const text = await (await fetch("sw.js?check=" + Date.now(), { cache: "no-store" })).text();

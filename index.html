@@ -1006,7 +1006,7 @@ show(TITLES[lastView] && lastView !== "bank" && lastView !== "day" ? lastView : 
 
 // Tell her when a newer version is online, so she doesn't need to close the app to get it.
 // APP_VERSION must match CACHE in sw.js; bump both together.
-const APP_VERSION = "lois-akara-v13";
+const APP_VERSION = "lois-akara-v14";
 async function checkForUpdate() {
   try {
     const text = await (await fetch("sw.js?check=" + Date.now(), { cache: "no-store" })).text();
@@ -1023,19 +1023,29 @@ if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catc
 // Install from Settings. The browser offers its install prompt only once in a while, so keep it
 // for when she taps Install, and explain the menu route when the browser isn't offering it.
 let installPrompt = null;
+// "Installed" is remembered when the browser confirms it, so the button stays right even in the
+// browser tab. If the browser offers to install again, the app was removed, so forget it.
 const installed = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const wasInstalled = () => { try { return localStorage.getItem("loisAkara.installed") === "1"; } catch { return false; } };
 function renderInstall() {
   const btn = $("installBtn");
-  if (installed()) { btn.textContent = "Installed"; btn.disabled = true; $("installNote").textContent = "You're using the installed app"; return; }
+  if (installed() || wasInstalled()) {
+    btn.textContent = "Installed ✓"; btn.disabled = true;
+    $("installNote").textContent = installed() ? "You're using the installed app" : "Open it from your home screen";
+    $("installHelp").classList.add("hidden");
+    return;
+  }
   btn.textContent = "Install"; btn.disabled = false;
 }
-addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installPrompt = e; renderInstall(); });
-addEventListener("appinstalled", () => { installPrompt = null; toast(`${ICONS.check} Installed`); renderInstall(); });
+addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installPrompt = e; try { localStorage.removeItem("loisAkara.installed"); } catch {} renderInstall(); });
+addEventListener("appinstalled", () => { installPrompt = null; try { localStorage.setItem("loisAkara.installed", "1"); } catch {} toast(`${ICONS.check} Installed`); renderInstall(); });
 $("installBtn").onclick = async () => {
+  // The browser's install box can only be shown once per visit, so use it once and then fall
+  // back to the menu steps; a second tap never does nothing.
   if (installPrompt) {
-    installPrompt.prompt();
-    const { outcome } = await installPrompt.userChoice;
-    if (outcome === "accepted") installPrompt = null;
+    const p = installPrompt;
+    installPrompt = null;
+    try { p.prompt(); await p.userChoice; } catch {}
     renderInstall();
     return;
   }

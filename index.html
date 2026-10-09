@@ -74,8 +74,8 @@
   .title-wrap { display: flex; align-items: center; gap: 12px; }
   .brand-logo { width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 0 1px var(--line-2); }
   .tagline { font-size: 12px; color: var(--muted); font-style: italic; margin-top: 1px; }
-  .for-field { display: grid; gap: 6px; margin: 4px 0 12px; font-size: 13px; color: var(--muted); font-weight: 500; }
-  .for-field input { height: 44px; border-radius: 12px; border: 1px solid var(--line-2); background: var(--surface); color: var(--ink); padding: 0 14px; font-size: 16px; }
+  .pack-no { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; margin-right: 6px; border-radius: 10px; background: var(--brand); color: var(--brand-ink); font-size: 12px; font-weight: 700; vertical-align: 1px; }
+  .owed { display: inline-block; margin-top: 8px; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.16); color: #ffe2a6; font-size: 13px; font-weight: 600; }
   .for-tag { color: var(--brand); font-weight: 600; }
   .head-right { display: flex; align-items: center; gap: 8px; }
   .round { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); display: grid; place-items: center; }
@@ -389,7 +389,6 @@
   <div class="display"><small id="sLabel">Amount</small><div class="big mono" id="sBig">₦0</div><div class="conv" id="sConv">&nbsp;</div></div>
   <div class="quick" id="sQuick"></div>
   <div class="pad" id="sPad"></div>
-  <label class="for-field">Who is this pack for? (optional)<input id="sFor" maxlength="30" autocomplete="off" placeholder="e.g. Musa" /></label>
   <div class="actions">
     <button class="btn" id="sCancel">Cancel</button>
     <button class="btn primary" id="sAdd">Add</button>
@@ -483,8 +482,8 @@ let orders = load("loisAkara.orders", []);
 
 // The order being built (item id -> quantity), kept on the phone so a refresh doesn't lose it.
 const draft = load("loisAkara.draft", {});
-// The order being built is a list of packs. The same item can appear more than once,
-// e.g. two separate ₦500 akara packs, one of them for someone else. Older drafts were {itemId: qty}.
+// The order being built is a list of numbered packs. The same item can appear more than once,
+// e.g. two separate ₦500 akara packs for the same customer. Older drafts were {itemId: qty}.
 const newKey = () => Math.random().toString(36).slice(2, 8);
 let cart = Array.isArray(draft.cart) ? draft.cart : Object.entries(draft.cart || {}).map(([id, qty]) => ({ key: newKey(), id, qty, for: "" }));
 let pay = draft.pay || null;
@@ -518,10 +517,10 @@ function renderReceipt() {
     box.innerHTML = `<div class="empty-line">Tap something on the menu to start.</div>`;
   } else {
     const total = lines.reduce((s, l) => s + l.cost, 0);
-    box.innerHTML = `<div class="card">${lines.map((l) => `
+    box.innerHTML = `<div class="card">${lines.map((l, n) => `
       <div class="row">
         <div class="thumb">${pic(l.it.id)}</div>
-        <div class="what" data-edit="${l.key}"><b>${l.it.name}</b><span>${l.qty} ${unitName(l.it, l.qty)} × ${naira(l.it.price)}${l.for ? ` · <span class="for-tag">for ${escText(l.for)}</span>` : ""}</span></div>
+        <div class="what" data-edit="${l.key}"><b>${lines.length > 1 ? `<span class="pack-no">${n + 1}</span>` : ""}${l.it.name}</b><span>${l.qty} ${unitName(l.it, l.qty)} × ${naira(l.it.price)}${l.for ? ` · <span class="for-tag">for ${escText(l.for)}</span>` : ""}</span></div>
         <div class="amt mono">${naira(l.cost)}</div>
         <button class="x" data-remove="${l.key}" aria-label="Remove ${l.it.name}">${ICONS.x}</button>
       </div>`).join("")}</div>
@@ -554,8 +553,7 @@ function openSheet(id, key = null) {
   sheet.key = pack ? key : null;
   sheet.mode = it.byAmount ? "amount" : "qty";
   sheet.input = pack ? String(it.byAmount ? pack.qty * it.price : pack.qty) : "";
-  $("sFor").value = pack?.for || "";
-  $("sTitle").textContent = !pack && cart.some((p) => p.id === id) ? `${it.name} · another pack` : it.name;
+  $("sTitle").textContent = it.name;
   $("sPrice").textContent = `${naira(it.price)} ${per(it)}`;
   $("sArt").innerHTML = pic(it.id);
   $("sMode").classList.toggle("hidden", !it.byAmount);
@@ -606,11 +604,10 @@ $("sCancel").onclick = closeSheet;
 $("scrim").onclick = closeSheet;
 $("sAdd").onclick = () => {
   const { qty } = sheetResult();
-  const forWho = $("sFor").value.trim().slice(0, 30);
   if (sheet.key) {
     const p = cart.find((x) => x.key === sheet.key);
-    if (p && qty) { p.qty = qty; p.for = forWho; } else cart = cart.filter((x) => x.key !== sheet.key);
-  } else if (qty) cart.push({ key: newKey(), id: sheet.id, qty, for: forWho });
+    if (p && qty) p.qty = qty; else cart = cart.filter((x) => x.key !== sheet.key);
+  } else if (qty) cart.push({ key: newKey(), id: sheet.id, qty, for: "" });
   closeSheet();
   refreshOrder();
 };
@@ -637,8 +634,12 @@ function addOrder() {
   cart = []; pay = null; $("custName").value = "";
   refreshOrder(); refreshHeader();
 }
-// Plain text; escape it before putting it into HTML (a pack's "for" name is typed by hand).
-const describe = (o) => o.items.map((i) => `${i.qty} ${i.name.toLowerCase()}${i.for ? ` (for ${i.for})` : ""}`).join(", ");
+// Plain text; escape it before putting it into HTML. Several packs are numbered: "1. 10 akara · 2. 10 akara".
+// (Orders from v15 may carry a typed "for" name per pack; it is still shown.)
+const describe = (o) => {
+  const one = (i) => `${i.qty} ${i.name.toLowerCase()}${i.for ? ` (for ${i.for})` : ""}`;
+  return o.items.length > 1 ? o.items.map((i, n) => `${n + 1}. ${one(i)}`).join(" · ") : o.items.map(one).join("");
+};
 const payChip = (o) => ({ cash: '<span class="chip cash">Cash</span>', transfer: '<span class="chip transfer">Transfer</span>', unpaid: '<span class="chip unpaid">Not paid</span>' }[o.pay]);
 const time = (o) => new Date(o.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -723,7 +724,8 @@ function dayStats(day) {
   const sum = (f) => list.filter(f).reduce((s, o) => s + o.total, 0);
   return {
     day, all, list,
-    total: sum(() => true), cash: sum((o) => o.pay === "cash"), transfer: sum((o) => o.pay === "transfer"), unpaid: sum((o) => o.pay === "unpaid"),
+    // "total" is money received (cash + transfer). Unpaid orders are counted separately until she marks them paid.
+    total: sum((o) => o.pay !== "unpaid"), cash: sum((o) => o.pay === "cash"), transfer: sum((o) => o.pay === "transfer"), unpaid: sum((o) => o.pay === "unpaid"),
     sold: settings.items.map((it) => ({ it, qty: list.reduce((s, o) => s + o.items.filter((i) => i.id === it.id).reduce((a, i) => a + i.qty, 0), 0) })),
   };
 }
@@ -732,19 +734,20 @@ const waitingOrders = () => orders.filter((o) => o.status !== "done");
 const oldTag = (o) => (o.day !== todayKey() ? `<span class="chip old">${dayName(o.day)}</span>` : "");
 
 function salesCard(st, label) {
-  const pct = (v) => (st.total ? (v / st.total) * 100 : 0);
+  const pct = (v) => (st.total + st.unpaid ? (v / (st.total + st.unpaid)) * 100 : 0);
   return `
     <div class="hero">
       <div class="label">${label}</div>
       <div class="num mono">${naira(st.total)}</div>
       <div class="sub">${fullDate(st.day)}</div>
+      ${st.unpaid ? `<div class="owed">Not paid yet: <span class="mono">${naira(st.unpaid)}</span></div>` : ""}
       <div class="cols">
         <div><span class="label">Orders</span><b>${st.list.length}</b></div>
         <div><span class="label">Cash</span><b class="mono">${naira(st.cash)}</b></div>
         <div><span class="label">Transfer</span><b class="mono">${naira(st.transfer)}</b></div>
       </div>
     </div>
-    ${st.total ? `<div class="split"><i style="width:${pct(st.cash)}%;background:var(--ok)"></i><i style="width:${pct(st.transfer)}%;background:var(--blue)"></i><i style="width:${pct(st.unpaid)}%;background:var(--warn)"></i></div>
+    ${st.total + st.unpaid ? `<div class="split"><i style="width:${pct(st.cash)}%;background:var(--ok)"></i><i style="width:${pct(st.transfer)}%;background:var(--blue)"></i><i style="width:${pct(st.unpaid)}%;background:var(--warn)"></i></div>
     <div class="legend"><span><em style="background:var(--ok)"></em>Cash</span><span><em style="background:var(--blue)"></em>Transfer</span>${st.unpaid ? `<span><em style="background:var(--warn)"></em>Not paid ${naira(st.unpaid)}</span>` : ""}</div>` : ""}`;
 }
 function soldCard(st, title) {
@@ -767,7 +770,7 @@ function ordersCard(st, emptyText) {
 }
 function dayRow(key) {
   const st = dayStats(key);
-  return `<div class="row day-row" data-day="${key}"><div class="what"><b>${dayName(key)}${key === shiftDay(todayKey(), -1) ? ` <span style="color:var(--muted);font-weight:400;font-size:13px">· ${parseDay(key).toLocaleDateString("en-NG", { weekday: "short", day: "numeric", month: "short" })}</span>` : ""}</b><span>${st.list.length} order${st.list.length === 1 ? "" : "s"}</span></div><div class="amt mono">${naira(st.total)}</div><span class="chev">${ICONS.chev}</span></div>`;
+  return `<div class="row day-row" data-day="${key}"><div class="what"><b>${dayName(key)}${key === shiftDay(todayKey(), -1) ? ` <span style="color:var(--muted);font-weight:400;font-size:13px">· ${parseDay(key).toLocaleDateString("en-NG", { weekday: "short", day: "numeric", month: "short" })}</span>` : ""}</b><span>${st.list.length} order${st.list.length === 1 ? "" : "s"}${st.unpaid ? ` · ${naira(st.unpaid)} not paid` : ""}</span></div><div class="amt mono">${naira(st.total)}</div><span class="chev">${ICONS.chev}</span></div>`;
 }
 const wireDays = (box) => box.querySelectorAll("[data-day]").forEach((r) => (r.onclick = () => openDay(r.dataset.day)));
 
@@ -778,7 +781,7 @@ function renderHome() {
   $("homeBody").innerHTML = `
     <button class="start" id="startOrder"><span class="plus">${ICONS.plus}</span><span><b>New order</b><small>Order #${nextNumber()} is next</small></span>${ICONS.chev}</button>
     <div class="h">Today</div>
-    ${salesCard(st, "Total sales")}
+    ${salesCard(st, "Money in")}
     <div class="h"><span>Waiting<small>${waiting.length || ""}</small></span>${waiting.length ? '<button id="seeQueue">See all</button>' : ""}</div>
     <div class="card">${waiting.length ? waiting.slice(0, 3).map((o) => `
       <div class="row" data-goqueue><div class="no" style="width:36px;height:36px;font-size:14px">${o.no}</div>
@@ -806,7 +809,7 @@ function renderHistory() {
   else { const d = parseDay(today); for (let i = 1; i <= d.getDate(); i++) days.push(new Date(d.getFullYear(), d.getMonth(), i).toLocaleDateString("en-CA")); }
   const stats = days.map(dayStats);
   const total = stats.reduce((s, x) => s + x.total, 0), cash = stats.reduce((s, x) => s + x.cash, 0), transfer = stats.reduce((s, x) => s + x.transfer, 0);
-  const count = stats.reduce((s, x) => s + x.list.length, 0);
+  const count = stats.reduce((s, x) => s + x.list.length, 0), unpaid = stats.reduce((s, x) => s + x.unpaid, 0);
   const max = Math.max(1, ...stats.map((x) => x.total));
   const best = stats.reduce((b, x) => (x.total > (b?.total || 0) ? x : b), null);
   const all = daysWithOrders();
@@ -817,6 +820,7 @@ function renderHistory() {
       <div class="label">${period === "week" ? "Last 7 days" : parseDay(today).toLocaleDateString("en-NG", { month: "long" })}</div>
       <div class="num mono">${naira(total)}</div>
       <div class="sub">${count} order${count === 1 ? "" : "s"}</div>
+      ${unpaid ? `<div class="owed">Not paid yet: <span class="mono">${naira(unpaid)}</span></div>` : ""}
       <div class="cols">
         <div><span class="label">Cash</span><b class="mono">${naira(cash)}</b></div>
         <div><span class="label">Transfer</span><b class="mono">${naira(transfer)}</b></div>
@@ -840,7 +844,7 @@ function openDay(day) {
 function renderDay() {
   const st = dayStats(openedDay);
   $("pageTitle").textContent = dayName(openedDay);
-  $("dayBody").innerHTML = `<div style="height:12px"></div>${salesCard(st, "Total sales")}${soldCard(st, "Sold")}${ordersCard(st, "No orders on this day")}`;
+  $("dayBody").innerHTML = `<div style="height:12px"></div>${salesCard(st, "Money in")}${soldCard(st, "Sold")}${ordersCard(st, "No orders on this day")}`;
   wireOrders($("dayBody"));
 }
 
@@ -854,8 +858,8 @@ function openOrder(id) {
   const status = o.cancelled ? '<span class="chip cancel">Cancelled</span>' : o.status !== "done" ? '<span class="chip old">Waiting</span>' : '<span class="chip ready">Collected</span>';
   $("oTitle").textContent = o.name ? `${o.name} · #${o.no}` : `Order #${o.no}`;
   $("oWhen").textContent = `${dayName(o.day, true)}, ${time(o)}`;
-  $("oItems").innerHTML = o.items.map((i) => `
-    <div class="row"><div class="thumb">${pic(i.id)}</div><div class="what"><b>${esc(i.name)}</b><span>${i.qty} × ${naira(i.price)}${i.for ? ` · <span class="for-tag">for ${esc(i.for)}</span>` : ""}</span></div><div class="amt mono">${naira(i.cost)}</div></div>`).join("") +
+  $("oItems").innerHTML = o.items.map((i, n) => `
+    <div class="row"><div class="thumb">${pic(i.id)}</div><div class="what"><b>${o.items.length > 1 ? `<span class="pack-no">${n + 1}</span>` : ""}${esc(i.name)}</b><span>${i.qty} × ${naira(i.price)}${i.for ? ` · <span class="for-tag">for ${esc(i.for)}</span>` : ""}</span></div><div class="amt mono">${naira(i.cost)}</div></div>`).join("") +
     `<div class="summary"><div class="total"><span>Total</span><span class="mono">${naira(o.total)}</span></div></div>`;
   $("oTags").innerHTML = `${payChip(o)}${status}`;
   $("oScrim").classList.add("open");
@@ -1031,7 +1035,7 @@ show(TITLES[lastView] && lastView !== "bank" && lastView !== "day" ? lastView : 
 
 // Tell her when a newer version is online, so she doesn't need to close the app to get it.
 // APP_VERSION must match CACHE in sw.js; bump both together.
-const APP_VERSION = "lois-akara-v15";
+const APP_VERSION = "lois-akara-v16";
 async function checkForUpdate() {
   try {
     const text = await (await fetch("sw.js?check=" + Date.now(), { cache: "no-store" })).text();

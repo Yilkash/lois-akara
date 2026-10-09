@@ -15,7 +15,7 @@ The shop's brand is **Mai Kosai** ("Northern Roots. Unforgettable Taste."), rena
 - There is no backend. Everything lives in the phone's `localStorage`:
   - `loisAkara.orders`: an array of `{id, day: "YYYY-MM-DD", no, at, name, items:[{id,name,qty,price,cost,for?}], total, pay: cash|transfer|unpaid, status: waiting|ready|done, cancelled?, doneAt?}`.
   - `loisAkara.settings`: `{shop, bank:{name,bank,number}, items:[{id,price}]}`. Item names and units come from `DEFAULTS` in code; only prices are kept from storage.
-  - `loisAkara.draft`: the order being built: `{cart: [{key, id, qty, for}], pay, name}`. The same item can be in the cart more than once (separate packs, e.g. two ₦500 akara, one "for Musa"). Drafts from before v15 stored `cart` as `{itemId: qty}`; they are converted on load.
+  - `loisAkara.draft`: the order being built: `{cart: [{key, id, qty, for}], pay, name}`. The same item can be in the cart more than once: separate packs for the same customer, shown numbered 1, 2, 3 (e.g. two ₦500 akara instead of one ₦1,000). `for` is always empty now; v15 briefly let her type a per-pack name, and orders saved then still show it. Drafts from before v15 stored `cart` as `{itemId: qty}`; they are converted on load.
   - `loisAkara.view` and `loisAkara.period`: the tab and Past-days period last opened.
   - `loisAkara.theme`: `dark` or `light`.
   - `loisAkara.look`: the colour style: `warm` (default, shown as "Mai Kosai": cream, deep brown and gold), `clean`, `green`, `orange`, `gold` or `pink`.
@@ -29,6 +29,7 @@ The shop's brand is **Mai Kosai** ("Northern Roots. Unforgettable Taste."), rena
 - Confirmations use the app's own `ask()` box. Never use `confirm()` or `alert()`; the owner explicitly asked for that.
 - Keep the SVG drawings as the default pictures. Stock food photos were tried and rejected.
 - Light mode is the default; dark mode is opt-in.
+- Sales totals (home, a day, past days) count **money received** (cash + transfer). Unpaid orders show separately as "Not paid yet" until marked paid; cancelled orders never count. The ₦ change shown in the amount sheet is never recorded; an order stores only the items' cost.
 - Order numbers restart at #1 each day (`nextNumber`). Past days are read-only, except that any order can be deleted (with confirmation).
 - The owner wants a plan described before anything is built.
 

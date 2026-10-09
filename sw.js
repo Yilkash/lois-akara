@@ -1,6 +1,6 @@
 // Keeps the app working with no network: serve the saved copy, refresh it when online.
 // Bump together with APP_VERSION in index.html.
-const CACHE = "lois-akara-v20";
+const CACHE = "lois-akara-v21";
 const FILES = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png", "logo.png"];
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener("activate", (e) => {

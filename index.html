@@ -190,6 +190,11 @@
   .packs li { display: flex; align-items: center; gap: 4px; font-size: 15px; color: var(--ink); }
   .packs li .for-tag { font-size: 13px; margin-left: 4px; }
   .packs li .mono { margin-left: auto; color: var(--ink-2); font-size: 14px; }
+  .edit-bar { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding: 12px 14px; border-radius: 14px; background: var(--thumb); color: var(--brand); font-weight: 600; font-size: 14px; }
+  .edit-bar span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .edit-bar button { border: 1px solid var(--line-2); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 6px 14px; font-weight: 600; font-size: 13px; }
+  .paid-note { color: var(--ink-2); font-size: 14px; padding: 4px 2px; }
+  .chip.owe { background: var(--warn-soft); color: var(--warn); }
   .pay-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
   .pay-row .lbl { margin-left: auto; color: var(--muted); font-size: 13px; white-space: nowrap; }
   .pay-row .btn { padding: 8px 14px; font-size: 14px; border-radius: 999px; white-space: nowrap; }
@@ -315,6 +320,7 @@
 
   <!-- NEW ORDER -->
   <section id="view-new" class="view">
+    <div class="edit-bar hidden" id="editBar"><span id="editText">Editing order</span><button id="cancelEdit">Cancel</button></div>
     <div class="h">Menu</div>
     <div class="tiles" id="tiles"></div>
 
@@ -325,6 +331,7 @@
     <input class="field" id="custName" placeholder="Name (optional)" autocomplete="off" />
 
     <div class="h">Payment</div>
+    <div class="paid-note hidden" id="paidNote"></div>
     <div class="pills" id="payBtns">
       <button class="pill" data-pay="cash">Cash</button>
       <button class="pill" data-pay="transfer">Transfer</button>
@@ -434,7 +441,8 @@
   </div>
   <div class="tags" id="oTags" style="margin:12px 0 4px"></div>
   <div id="oItems"></div>
-  <div class="actions" style="grid-template-columns:1fr 1fr;margin-top:18px">
+  <button class="btn block hidden" id="oEdit" style="margin-top:18px">Edit order</button>
+  <div class="actions" style="grid-template-columns:1fr 1fr;margin-top:10px">
     <button class="btn danger" id="oDelete">Delete order</button>
     <button class="btn primary" id="oDone">Done</button>
   </div>
@@ -454,6 +462,7 @@
 <script>
 // Mai Kosai (formerly Lois Akara): order taking, queue and daily totals. Everything is stored on this phone.
 const ICONS = {
+  pencil: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/></svg>',
   eye: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>',
   eyeOff: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18M10.6 5.1A10.6 10.6 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6C3.9 8.4 2 12 2 12s3.6 7 10 7a9.8 9.8 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>',
   queue: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg>',
@@ -526,7 +535,7 @@ const newKey = () => Math.random().toString(36).slice(2, 8);
 let cart = Array.isArray(draft.cart) ? draft.cart : Object.entries(draft.cart || {}).map(([id, qty]) => ({ key: newKey(), id, qty, for: "" }));
 let pay = draft.pay || null;
 $("custName").value = draft.name || "";
-const saveDraft = () => save("loisAkara.draft", { cart, pay, name: $("custName").value });
+const saveDraft = () => { if (!editing) save("loisAkara.draft", { cart, pay, name: $("custName").value }); };
 
 const itemById = (id) => settings.items.find((i) => i.id === id);
 const unitName = (it, n) => (n === 1 ? it.unit[0] : it.unit[1]);
@@ -574,7 +583,15 @@ function refreshOrder() {
   renderReceipt();
   const total = cartLines().reduce((s, l) => s + l.cost, 0);
   $("sum").textContent = naira(total);
-  $("chargeLabel").textContent = `Add order #${nextNumber()}`;
+  const edited = editing && orders.find((x) => x.id === editing);
+  $("editBar").classList.toggle("hidden", !edited);
+  if (edited) $("editText").textContent = `Editing order #${edited.no}${edited.name ? ` · ${edited.name}` : ""}`;
+  $("chargeLabel").textContent = edited ? `Save changes to #${edited.no}` : `Add order #${nextNumber()}`;
+  // An order that is already (partly) paid keeps its payment; only the difference is settled later.
+  const paidSoFar = edited ? paidOf(edited) : 0;
+  $("paidNote").classList.toggle("hidden", !paidSoFar);
+  if (paidSoFar) $("paidNote").textContent = `Already paid ${naira(paidSoFar)}. ${total > paidSoFar ? `${naira(total - paidSoFar)} more will show as "to pay" in the Queue.` : total < paidSoFar && total ? `Give back ${naira(paidSoFar - total)} when you save.` : ""}`;
+  $("payBtns").classList.toggle("hidden", !!paidSoFar);
   $("charge").classList.toggle("off", total === 0 || current !== "new");
   document.querySelectorAll("#payBtns button").forEach((b) => b.classList.toggle("on", b.dataset.pay === pay));
   $("showBank").classList.toggle("hidden", pay !== "transfer");
@@ -655,6 +672,47 @@ function nextNumber() {
   const t = todayKey();
   return orders.filter((o) => o.day === t).reduce((m, o) => Math.max(m, o.no), 0) + 1;
 }
+// Editing a placed order: it opens in the New order screen. The order being built before is put
+// aside and comes back after Save or Cancel.
+let editing = null, stash = null;
+function editOrder(id) {
+  const o = orders.find((x) => x.id === id);
+  if (!o || o.status === "done") return;
+  if (!editing) stash = { cart, pay, name: $("custName").value };
+  editing = id;
+  cart = o.items.map((i) => ({ key: newKey(), id: i.id, qty: i.qty, for: i.for || "" }));
+  pay = null;
+  $("custName").value = o.name || "";
+  show("new");
+}
+function endEdit() {
+  editing = null;
+  if (stash) { cart = stash.cart; pay = stash.pay; $("custName").value = stash.name; stash = null; }
+  refreshOrder();
+}
+async function saveEdit() {
+  const o = orders.find((x) => x.id === editing);
+  const lines = cartLines();
+  if (!o || !lines.length) return;
+  const total = lines.reduce((s, l) => s + l.cost, 0);
+  const paid = paidOf(o);
+  const who = o.name ? `${o.name}` : `the customer`;
+  if (paid > total && !(await ask({ title: `Give back ${naira(paid - total)}`, text: `${who === "the customer" ? "The customer" : who} paid ${naira(paid)}; the order is now ${naira(total)}. Give back ${naira(paid - total)}, then save.`, yes: "Given back, save", no: "Go back", icon: "check" }))) return;
+  const now = new Date().toISOString();
+  ensurePayments(o);
+  if (paid > total) o.payments.push({ method: o.payments.at(-1)?.method || "cash", amount: total - paid, at: now });
+  else if (!paid && (pay === "cash" || pay === "transfer")) { o.payments.push({ method: pay, amount: total, at: now }); o.pay = pay; o.paidAt = now; }
+  o.items = lines.map((l) => ({ id: l.it.id, name: l.it.name, qty: l.qty, price: l.it.price, cost: l.cost, ...(l.for ? { for: l.for } : {}) }));
+  o.total = total;
+  o.name = $("custName").value.trim();
+  o.editedAt = now;
+  if (!paidOf(o)) o.pay = "unpaid";
+  if (!save("loisAkara.orders", orders)) return;
+  toast(`${ICONS.check} Order #${o.no} saved · ${naira(total)}${owing(o) && paid ? ` · ${naira(owing(o))} more to pay` : ""}`);
+  endEdit();
+  refreshHeader();
+  show("queue");
+}
 function addOrder() {
   const lines = cartLines();
   if (!lines.length) return;
@@ -674,8 +732,15 @@ function addOrder() {
 }
 // Short plain-text summary for lists and the CSV; escape it before putting it into HTML.
 // The Queue shows the packs one per line, numbered. (Orders from v15 may carry a typed "for" name per pack.)
+// How much has been paid on an order. Orders saved before v21 have no payments list: they were
+// either fully paid (pay = cash|transfer) or not at all. Payments can be negative (change given back after an edit).
+const paymentsOf = (o) => o.payments || (o.pay !== "unpaid" ? [{ method: o.pay, amount: o.total, at: o.paidAt || o.at }] : []);
+const paidOf = (o) => paymentsOf(o).reduce((s, p) => s + p.amount, 0);
+const paidBy = (o, m) => paymentsOf(o).filter((p) => p.method === m).reduce((s, p) => s + p.amount, 0);
+const owing = (o) => Math.max(0, o.total - paidOf(o));
+const ensurePayments = (o) => { if (!o.payments) o.payments = paymentsOf(o); return o.payments; };
 const describe = (o) => o.items.map((i) => `${i.qty} ${i.name.toLowerCase()}${i.for ? ` (for ${i.for})` : ""}`).join(", ");
-const payChip = (o) => ({ cash: '<span class="chip cash">Cash</span>', transfer: '<span class="chip transfer">Transfer</span>', unpaid: '<span class="chip unpaid">Not paid</span>' }[o.pay]);
+const payChip = (o) => owing(o) && paidOf(o) > 0 ? `<span class="chip owe">${naira(owing(o))} more to pay</span>` : ({ cash: '<span class="chip cash">Cash</span>', transfer: '<span class="chip transfer">Transfer</span>', unpaid: '<span class="chip unpaid">Not paid</span>' }[o.pay]);
 const time = (o) => new Date(o.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
@@ -697,12 +762,13 @@ function renderQueue() {
       <ul class="packs">${o.items.map((i, n) => `
         <li>${o.items.length > 1 ? `<span class="pack-no">${n + 1}</span>` : ""}<span>${i.qty} ${esc(i.name.toLowerCase())}</span>${i.for ? `<span class="for-tag">for ${esc(i.for)}</span>` : ""}<span class="mono">${naira(i.cost)}</span></li>`).join("")}
       </ul>
-      ${o.pay === "unpaid"
-        ? `<div class="pay-row"><span class="chip unpaid">Not paid</span><span class="lbl">Paid by</span><button class="btn" data-a="cash" data-id="${o.id}">Cash</button><button class="btn" data-a="transfer" data-id="${o.id}">Transfer</button></div>`
+      ${owing(o)
+        ? `<div class="pay-row">${paidOf(o) > 0 ? `<span class="chip owe">${naira(owing(o))} more</span>` : '<span class="chip unpaid">Not paid</span>'}<span class="lbl">Paid by</span><button class="btn" data-a="cash" data-id="${o.id}">Cash</button><button class="btn" data-a="transfer" data-id="${o.id}">Transfer</button></div>`
         : `<div class="tags">${payChip(o)}${o.status === "ready" ? '<span class="chip ready">Ready</span>' : ""}</div>`}
       <div class="order-actions">
-        ${o.pay !== "unpaid" && o.status === "waiting" ? `<button class="btn" data-a="ready" data-id="${o.id}">Mark ready</button>` : ""}
+        ${!owing(o) && o.status === "waiting" ? `<button class="btn" data-a="ready" data-id="${o.id}">Mark ready</button>` : ""}
         <button class="btn primary" data-a="done" data-id="${o.id}">Collected</button>
+        <button class="btn icon" data-a="edit" data-id="${o.id}" aria-label="Edit order">${ICONS.pencil}</button>
         <button class="btn icon" data-a="cancel" data-id="${o.id}" aria-label="Cancel order">${ICONS.x}</button>
       </div>
     </div>`).join("");
@@ -734,10 +800,15 @@ async function act(id, action) {
   const o = orders.find((x) => x.id === id);
   if (!o) return;
   const who = o.name ? `${o.name}'s order (#${o.no})` : `Order #${o.no}`;
-  if (action === "cash" || action === "transfer") { o.pay = action; o.paidAt = new Date().toISOString(); }
+  if (action === "edit") return editOrder(id);
+  if (action === "cash" || action === "transfer") {
+    // Pays whatever is still owed (the whole order, or the extra after an edit).
+    const due = owing(o);
+    if (due) { ensurePayments(o).push({ method: action, amount: due, at: new Date().toISOString() }); o.pay = action; o.paidAt = new Date().toISOString(); }
+  }
   if (action === "ready") o.status = "ready";
   if (action === "done") {
-    if (o.pay === "unpaid" && !(await ask({ title: "Not paid yet", text: `${who} hasn't been paid for (${naira(o.total)}). Mark it as collected anyway?`, yes: "Yes, collected" }))) return;
+    if (owing(o) && !(await ask({ title: "Not paid yet", text: `${who} still owes ${naira(owing(o))}. Mark it as collected anyway?`, yes: "Yes, collected" }))) return;
     o.status = "done"; o.doneAt = new Date().toISOString();
   }
   if (action === "cancel") {
@@ -765,7 +836,8 @@ function dayStats(day) {
   return {
     day, all, list,
     // "total" is money received (cash + transfer). Unpaid orders are counted separately until she marks them paid.
-    total: sum((o) => o.pay !== "unpaid"), cash: sum((o) => o.pay === "cash"), transfer: sum((o) => o.pay === "transfer"), unpaid: sum((o) => o.pay === "unpaid"),
+    total: list.reduce((s, o) => s + paidOf(o), 0), cash: list.reduce((s, o) => s + paidBy(o, "cash"), 0),
+    transfer: list.reduce((s, o) => s + paidBy(o, "transfer"), 0), unpaid: list.reduce((s, o) => s + owing(o), 0),
     sold: settings.items.map((it) => ({ it, qty: list.reduce((s, o) => s + o.items.filter((i) => i.id === it.id).reduce((a, i) => a + i.qty, 0), 0) })),
   };
 }
@@ -824,7 +896,9 @@ function latestEvent() {
   const ev = [];
   for (const o of orders.filter((x) => x.day === todayKey())) {
     ev.push({ at: o.at, ok: true, text: `Order #${o.no} added · ${money(o.total)} · ${{ cash: "Cash", transfer: "Transfer", unpaid: "Not paid" }[o.pay]}` });
-    if (o.paidAt) ev.push({ at: o.paidAt, ok: true, text: `${who(o)} paid ${money(o.total)} · ${o.pay === "cash" ? "Cash" : "Transfer"}` });
+    for (const pmt of o.payments || (o.paidAt ? paymentsOf(o) : []))
+      if (pmt.at !== o.at) ev.push({ at: pmt.at, ok: true, text: pmt.amount < 0 ? `${who(o)} got ${money(-pmt.amount)} back` : `${who(o)} paid ${money(pmt.amount)} · ${pmt.method === "cash" ? "Cash" : "Transfer"}` });
+    if (o.editedAt) ev.push({ at: o.editedAt, ok: true, text: `Order #${o.no} changed · now ${money(o.total)}` });
     if (o.doneAt && !o.cancelled) ev.push({ at: o.doneAt, ok: true, text: `${who(o)} collected their order` });
     if (o.cancelled) ev.push({ at: o.cancelledAt || o.at, ok: false, text: `${who(o)}'s order was cancelled` });
   }
@@ -945,11 +1019,13 @@ function openOrder(id) {
     <div class="row"><div class="thumb">${pic(i.id)}</div><div class="what"><b>${o.items.length > 1 ? `<span class="pack-no">${n + 1}</span>` : ""}${esc(i.name)}</b><span>${i.qty} × ${naira(i.price)}${i.for ? ` · <span class="for-tag">for ${esc(i.for)}</span>` : ""}</span></div><div class="amt mono">${naira(i.cost)}</div></div>`).join("") +
     `<div class="summary"><div class="total"><span>Total</span><span class="mono">${naira(o.total)}</span></div></div>`;
   $("oTags").innerHTML = `${payChip(o)}${status}`;
+  $("oEdit").classList.toggle("hidden", o.status === "done");
   $("oScrim").classList.add("open");
   $("oSheet").classList.add("open");
 }
 function closeOrder() { $("oScrim").classList.remove("open"); $("oSheet").classList.remove("open"); shownOrder = null; }
 $("oClose").onclick = closeOrder;
+$("oEdit").onclick = () => { const id = shownOrder; closeOrder(); editOrder(id); };
 $("oDone").onclick = closeOrder;
 $("oScrim").onclick = closeOrder;
 $("oDelete").onclick = async () => {
@@ -1018,8 +1094,8 @@ function showBank() {
   show("bank");
 }
 function exportCsv() {
-  const rows = [["date", "order", "time", "name", "items", "total", "payment", "status"]];
-  for (const o of orders) rows.push([o.day, o.no, time(o), o.name, describe(o), o.total, o.pay, o.cancelled ? "cancelled" : o.status]);
+  const rows = [["date", "order", "time", "name", "items", "total", "paid", "payment", "status"]];
+  for (const o of orders) rows.push([o.day, o.no, time(o), o.name, describe(o), o.total, paidOf(o), o.pay, o.cancelled ? "cancelled" : o.status]);
   const csv = rows.map((r) => r.map((c) => `"${String(c ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
@@ -1100,7 +1176,8 @@ function toggleTheme() {
 document.querySelectorAll("nav button").forEach((b) => (b.onclick = () => show(b.dataset.view)));
 document.querySelectorAll("#payBtns button").forEach((b) => (b.onclick = () => { pay = pay === b.dataset.pay ? null : b.dataset.pay; refreshOrder(); }));
 $("custName").oninput = saveDraft;
-$("addOrder").onclick = addOrder;
+$("addOrder").onclick = () => (editing ? saveEdit() : addOrder());
+$("cancelEdit").onclick = () => { endEdit(); show("queue"); };
 $("clearOrder").onclick = () => { cart = []; refreshOrder(); };
 $("showBank").onclick = showBank;
 $("closeBank").onclick = () => show(previous === "home" ? "home" : "new");
@@ -1120,7 +1197,7 @@ show(TITLES[lastView] && lastView !== "bank" && lastView !== "day" ? lastView : 
 
 // Tell her when a newer version is online, so she doesn't need to close the app to get it.
 // APP_VERSION must match CACHE in sw.js; bump both together.
-const APP_VERSION = "lois-akara-v20";
+const APP_VERSION = "lois-akara-v21";
 async function checkForUpdate() {
   try {
     const text = await (await fetch("sw.js?check=" + Date.now(), { cache: "no-store" })).text();

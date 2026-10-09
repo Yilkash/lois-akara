@@ -12,7 +12,7 @@ Live: https://yilkash.github.io/lois-akara/
   - Kunu goes by the cup.
   - Tap the same item again to add a **separate pack**, numbered 1, 2, 3 under the same customer (e.g. two ₦500 akara instead of one ₦1,000). Tap a pack in the order to change or remove it.
   - Add the customer's name (optional) and the payment: cash, transfer or pay later.
-- **Queue:** numbered orders (from #1 each day) with Paid, Mark ready, Collected and Cancel. Orders not collected by midnight stay here with a "Yesterday" tag.
+- **Queue:** numbered orders (from #1 each day) with Paid, Mark ready, Collected, Edit and Cancel. Editing reopens the order to add, change or remove packs; extra money owed or change to give back is worked out for her. Orders not collected by midnight stay here with a "Yesterday" tag.
 - **Past days:** last 7 days or this month, with a bar per day, the best day, and a page for every day.
 - **Transfer card:** shows the bank details and amount to turn toward a customer.
 - **Settings:**

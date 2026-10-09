@@ -30,6 +30,7 @@ The shop's brand is **Mai Kosai** ("Northern Roots. Unforgettable Taste."), rena
 - Confirmations use the app's own `ask()` box. Never use `confirm()` or `alert()`; the owner explicitly asked for that.
 - Keep the SVG drawings as the default pictures. Stock food photos were tried and rejected.
 - Light mode is the default; dark mode is opt-in.
+- Type: Plus Jakarta Sans everywhere (v19). Amounts use the `.mono` class, which is the same font with tabular digits (it no longer means a monospace font; DM Mono was dropped for looking like a typewriter).
 - Home (v18, OPay-style layout in her colours): a compact "Money in today" card with an eye button to hide figures, a "Not paid yet" button to the Queue and a New order button; a latest-activity line (added, paid, collected or cancelled) with "Orders ›" scrolling to today's orders; then round shortcuts for New order, Queue, Past days and Bank details.
 - Queue cards list each pack on its own numbered line with its price; unpaid orders show "Not paid · Paid by [Cash] [Transfer]" on one line, then a wide Collected button. Lists elsewhere use the short `describe()` summary.
 - Sales totals (home, a day, past days) count **money received** (cash + transfer). Unpaid orders show separately as "Not paid yet" until marked paid; cancelled orders never count. The ₦ change shown in the amount sheet is never recorded; an order stores only the items' cost.

@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="icon-192.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
   :root {
     /* Mai Kosai: cream, deep brown and gold from her logo. */
@@ -59,11 +59,12 @@
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; background: var(--bg); color: var(--ink); }
-  body { font: 15px/1.45 Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; padding-bottom: calc(84px + env(safe-area-inset-bottom)); -webkit-font-smoothing: antialiased; }
+  body { font: 15px/1.45 "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; padding-bottom: calc(84px + env(safe-area-inset-bottom)); -webkit-font-smoothing: antialiased; }
   button { font: inherit; cursor: pointer; color: inherit; }
   input { font-family: inherit; }
   svg { display: block; }
-  .mono { font-family: "DM Mono", ui-monospace, Menlo, monospace; letter-spacing: -.02em; }
+  /* Amounts: same font as the text, with even-width digits so figures line up. */
+  .mono { font-family: inherit; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; letter-spacing: -.01em; font-weight: 600; }
   .wrap { max-width: 560px; margin: 0 auto; padding: 0 16px; }
 
   /* header */
@@ -104,7 +105,7 @@
   .row .what { flex: 1; min-width: 0; }
   .row .what b { display: block; font-weight: 600; font-size: 15px; }
   .row .what span { color: var(--muted); font-size: 13px; }
-  .row .amt { font-weight: 500; }
+  .row .amt { font-weight: 600; }
   .x { width: 32px; height: 32px; border-radius: 50%; border: 0; background: transparent; color: var(--muted); display: grid; place-items: center; }
   .empty-line { padding: 18px 14px; color: var(--muted); font-size: 14px; background: var(--surface); border: 1px dashed var(--line-2); border-radius: 16px; }
   .summary { margin-top: 10px; padding: 0 4px; }
@@ -146,8 +147,8 @@
   .seg button.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.1); }
   .display { padding: 18px 0 12px; }
   .display small { color: var(--muted); font-size: 12px; }
-  .display .big { font-size: 40px; font-weight: 500; min-height: 52px; line-height: 1.25; }
-  .display .big .unit { font-family: Inter, sans-serif; font-size: 16px; color: var(--muted); font-weight: 500; margin-left: 8px; letter-spacing: 0; }
+  .display .big { font-size: 40px; font-weight: 700; letter-spacing: -.02em; min-height: 52px; line-height: 1.25; }
+  .display .big .unit { font-family: inherit; font-size: 16px; color: var(--muted); font-weight: 500; margin-left: 8px; letter-spacing: 0; }
   .display .conv { font-size: 14px; color: var(--ink-2); min-height: 21px; }
   .display .conv b { color: var(--ink); font-weight: 600; }
   .display .conv .extra { color: var(--warn); }
@@ -172,7 +173,7 @@
   .order-head .what { flex: 1; min-width: 0; }
   .order-head .what b { font-weight: 600; }
   .order-head .what div { color: var(--ink-2); font-size: 14px; }
-  .order-head .amt { font-size: 16px; font-weight: 500; }
+  .order-head .amt { font-size: 16px; font-weight: 700; }
   .tags { display: flex; gap: 6px; align-items: center; margin-top: 10px; }
   .tags .time { margin-left: auto; color: var(--muted); font-size: 12px; }
   .chip { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 3px 9px; font-size: 12px; font-weight: 500; }
@@ -197,7 +198,7 @@
   /* today */
   .hero { background: linear-gradient(140deg, var(--hero-a), var(--hero-b)); color: var(--hero-ink); border-radius: 18px; padding: 18px; }
   .hero .label { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; opacity: .6; font-weight: 600; }
-  .hero .num { font-size: 36px; font-weight: 500; margin: 2px 0 2px; }
+  .hero .num { font-size: 36px; font-weight: 700; letter-spacing: -.02em; margin: 2px 0 2px; }
   .hero .sub { font-size: 13px; opacity: .65; }
   .hero .cols { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.12); }
   .hero .cols div + div { border-left: 1px solid rgba(255,255,255,.12); padding-left: 12px; }
@@ -209,7 +210,7 @@
   .wallet .eye { border: 0; background: none; color: inherit; padding: 4px; opacity: .85; display: grid; place-items: center; }
   .wallet .add { display: flex; align-items: center; gap: 6px; border: 1px solid rgba(255,255,255,.35); background: rgba(255,255,255,.14); color: inherit; border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 600; }
   .wallet .add svg { width: 16px; height: 16px; }
-  .wallet .num { font-size: 34px; font-weight: 500; margin: 6px 0 2px; }
+  .wallet .num { font-size: 34px; font-weight: 700; letter-spacing: -.02em; margin: 6px 0 2px; }
   .wallet .owed { border: 0; cursor: pointer; }
   .wallet .mini { font-size: 12px; opacity: .7; margin-top: 10px; }
   .latest { display: flex; align-items: center; gap: 8px; padding: 12px 4px 4px; font-size: 13px; color: var(--ink-2); }
@@ -1117,7 +1118,7 @@ show(TITLES[lastView] && lastView !== "bank" && lastView !== "day" ? lastView : 
 
 // Tell her when a newer version is online, so she doesn't need to close the app to get it.
 // APP_VERSION must match CACHE in sw.js; bump both together.
-const APP_VERSION = "lois-akara-v18";
+const APP_VERSION = "lois-akara-v19";
 async function checkForUpdate() {
   try {
     const text = await (await fetch("sw.js?check=" + Date.now(), { cache: "no-store" })).text();

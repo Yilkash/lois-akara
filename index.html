@@ -71,6 +71,12 @@
   .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .hello { font-size: 13px; color: var(--muted); font-weight: 500; }
   .shop { font-size: 26px; font-weight: 700; letter-spacing: -.025em; margin-top: 1px; }
+  .title-wrap { display: flex; align-items: center; gap: 12px; }
+  .brand-logo { width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 0 1px var(--line-2); }
+  .tagline { font-size: 12px; color: var(--muted); font-style: italic; margin-top: 1px; }
+  .for-field { display: grid; gap: 6px; margin: 4px 0 12px; font-size: 13px; color: var(--muted); font-weight: 500; }
+  .for-field input { height: 44px; border-radius: 12px; border: 1px solid var(--line-2); background: var(--surface); color: var(--ink); padding: 0 14px; font-size: 16px; }
+  .for-tag { color: var(--brand); font-weight: 600; }
   .head-right { display: flex; align-items: center; gap: 8px; }
   .round { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); display: grid; place-items: center; }
   .ticket { height: 40px; border-radius: 20px; background: var(--surface); border: 1px solid var(--line); padding: 0 14px; display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); font-weight: 500; }
@@ -383,6 +389,7 @@
   <div class="display"><small id="sLabel">Amount</small><div class="big mono" id="sBig">₦0</div><div class="conv" id="sConv">&nbsp;</div></div>
   <div class="quick" id="sQuick"></div>
   <div class="pad" id="sPad"></div>
+  <label class="for-field">Who is this pack for? (optional)<input id="sFor" maxlength="30" autocomplete="off" placeholder="e.g. Musa" /></label>
   <div class="actions">
     <button class="btn" id="sCancel">Cancel</button>
     <button class="btn primary" id="sAdd">Add</button>
@@ -476,20 +483,25 @@ let orders = load("loisAkara.orders", []);
 
 // The order being built (item id -> quantity), kept on the phone so a refresh doesn't lose it.
 const draft = load("loisAkara.draft", {});
-let cart = draft.cart || {};
+// The order being built is a list of packs. The same item can appear more than once,
+// e.g. two separate ₦500 akara packs, one of them for someone else. Older drafts were {itemId: qty}.
+const newKey = () => Math.random().toString(36).slice(2, 8);
+let cart = Array.isArray(draft.cart) ? draft.cart : Object.entries(draft.cart || {}).map(([id, qty]) => ({ key: newKey(), id, qty, for: "" }));
 let pay = draft.pay || null;
 $("custName").value = draft.name || "";
 const saveDraft = () => save("loisAkara.draft", { cart, pay, name: $("custName").value });
 
 const itemById = (id) => settings.items.find((i) => i.id === id);
 const unitName = (it, n) => (n === 1 ? it.unit[0] : it.unit[1]);
-const cartLines = () => settings.items.filter((it) => cart[it.id] > 0).map((it) => ({ it, qty: cart[it.id], cost: cart[it.id] * it.price }));
+const cartLines = () => cart.map((p) => ({ ...p, it: itemById(p.id) })).filter((l) => l.it && l.qty > 0).map((l) => ({ ...l, cost: l.qty * l.it.price }));
+const inCart = (id) => cart.filter((p) => p.id === id).reduce((s, p) => s + p.qty, 0);
+const escText = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const per = (it) => (it.id === "kunu" ? "per cup" : "each");
 
 function renderTiles() {
   $("tiles").innerHTML = settings.items.map((it) => `
     <button class="tile" data-item="${it.id}">
-      ${cart[it.id] ? `<span class="count">${cart[it.id]}</span>` : ""}
+      ${inCart(it.id) ? `<span class="count">${inCart(it.id)}</span>` : ""}
       <div class="art">${pic(it.id)}</div>
       <div class="name">${it.name}</div>
       <div class="price">${naira(it.price)} ${per(it)}</div>
@@ -509,13 +521,13 @@ function renderReceipt() {
     box.innerHTML = `<div class="card">${lines.map((l) => `
       <div class="row">
         <div class="thumb">${pic(l.it.id)}</div>
-        <div class="what" data-edit="${l.it.id}"><b>${l.it.name}</b><span>${l.qty} ${unitName(l.it, l.qty)} × ${naira(l.it.price)}</span></div>
+        <div class="what" data-edit="${l.key}"><b>${l.it.name}</b><span>${l.qty} ${unitName(l.it, l.qty)} × ${naira(l.it.price)}${l.for ? ` · <span class="for-tag">for ${escText(l.for)}</span>` : ""}</span></div>
         <div class="amt mono">${naira(l.cost)}</div>
-        <button class="x" data-remove="${l.it.id}" aria-label="Remove ${l.it.name}">${ICONS.x}</button>
+        <button class="x" data-remove="${l.key}" aria-label="Remove ${l.it.name}">${ICONS.x}</button>
       </div>`).join("")}</div>
       <div class="summary"><div class="total"><span>Total</span><span class="mono">${naira(total)}</span></div></div>`;
-    box.querySelectorAll("[data-remove]").forEach((b) => (b.onclick = () => { delete cart[b.dataset.remove]; refreshOrder(); }));
-    box.querySelectorAll("[data-edit]").forEach((b) => (b.onclick = () => openSheet(b.dataset.edit)));
+    box.querySelectorAll("[data-remove]").forEach((b) => (b.onclick = () => { cart = cart.filter((p) => p.key !== b.dataset.remove); refreshOrder(); }));
+    box.querySelectorAll("[data-edit]").forEach((b) => (b.onclick = () => { const p = cart.find((x) => x.key === b.dataset.edit); if (p) openSheet(p.id, p.key); }));
   }
   $("clearOrder").classList.toggle("hidden", !lines.length);
 }
@@ -533,13 +545,17 @@ function refreshOrder() {
 }
 
 /* ---------- the amount / pieces sheet ---------- */
-const sheet = { id: null, mode: "amount", input: "" };
-function openSheet(id) {
+// Tapping a menu item always starts a new pack; tapping a pack in the order edits that pack.
+const sheet = { id: null, key: null, mode: "amount", input: "" };
+function openSheet(id, key = null) {
   const it = itemById(id);
+  const pack = key ? cart.find((p) => p.key === key) : null;
   sheet.id = id;
+  sheet.key = pack ? key : null;
   sheet.mode = it.byAmount ? "amount" : "qty";
-  sheet.input = cart[id] ? String(it.byAmount ? cart[id] * it.price : cart[id]) : "";
-  $("sTitle").textContent = it.name;
+  sheet.input = pack ? String(it.byAmount ? pack.qty * it.price : pack.qty) : "";
+  $("sFor").value = pack?.for || "";
+  $("sTitle").textContent = !pack && cart.some((p) => p.id === id) ? `${it.name} · another pack` : it.name;
   $("sPrice").textContent = `${naira(it.price)} ${per(it)}`;
   $("sArt").innerHTML = pic(it.id);
   $("sMode").classList.toggle("hidden", !it.byAmount);
@@ -571,8 +587,8 @@ function renderSheet() {
     $("sQuick").innerHTML = [1, 2, 3, 5, 10].map((c) => `<button class="pill ${n === c ? "on" : ""}" data-q="${c}">${c}</button>`).join("");
   }
   $("sQuick").querySelectorAll("[data-q]").forEach((b) => (b.onclick = () => { sheet.input = b.dataset.q; renderSheet(); }));
-  $("sAdd").innerHTML = qty ? `Add ${qty} · <span class="mono">${naira(cost)}</span>` : cart[sheet.id] ? "Remove" : "Add";
-  $("sAdd").disabled = !qty && !cart[sheet.id];
+  $("sAdd").innerHTML = qty ? `${sheet.key ? "Save" : "Add"} ${qty} · <span class="mono">${naira(cost)}</span>` : sheet.key ? "Remove" : "Add";
+  $("sAdd").disabled = !qty && !sheet.key;
 }
 $("sPad").innerHTML = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "00", "0", "del"]
   .map((k) => `<button data-k="${k}" aria-label="${k === "del" ? "Delete" : k}">${k === "del" ? ICONS.back : k}</button>`).join("");
@@ -590,7 +606,11 @@ $("sCancel").onclick = closeSheet;
 $("scrim").onclick = closeSheet;
 $("sAdd").onclick = () => {
   const { qty } = sheetResult();
-  if (qty) cart[sheet.id] = qty; else delete cart[sheet.id];
+  const forWho = $("sFor").value.trim().slice(0, 30);
+  if (sheet.key) {
+    const p = cart.find((x) => x.key === sheet.key);
+    if (p && qty) { p.qty = qty; p.for = forWho; } else cart = cart.filter((x) => x.key !== sheet.key);
+  } else if (qty) cart.push({ key: newKey(), id: sheet.id, qty, for: forWho });
   closeSheet();
   refreshOrder();
 };
@@ -614,10 +634,11 @@ function addOrder() {
   orders.push(order);
   if (!save("loisAkara.orders", orders)) { orders.pop(); return; }
   toast(`${ICONS.check} Order #${order.no} added · ${naira(order.total)}`);
-  cart = {}; pay = null; $("custName").value = "";
+  cart = []; pay = null; $("custName").value = "";
   refreshOrder(); refreshHeader();
 }
-const describe = (o) => o.items.map((i) => `${i.qty} ${i.name.toLowerCase()}`).join(", ");
+// Plain text; escape it before putting it into HTML (a pack's "for" name is typed by hand).
+const describe = (o) => o.items.map((i) => `${i.qty} ${i.name.toLowerCase()}${i.for ? ` (for ${i.for})` : ""}`).join(", ");
 const payChip = (o) => ({ cash: '<span class="chip cash">Cash</span>', transfer: '<span class="chip transfer">Transfer</span>', unpaid: '<span class="chip unpaid">Not paid</span>' }[o.pay]);
 const time = (o) => new Date(o.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -634,7 +655,7 @@ function renderQueue() {
     <div class="order ${o.status === "ready" ? "ready" : ""}">
       <div class="order-head">
         <div class="no">${o.no}</div>
-        <div class="what"><b>${o.name ? esc(o.name) : "Order #" + o.no}</b><div>${describe(o)}</div></div>
+        <div class="what"><b>${o.name ? esc(o.name) : "Order #" + o.no}</b><div>${esc(describe(o))}</div></div>
         <div class="amt mono">${naira(o.total)}</div>
       </div>
       <div class="tags">${oldTag(o)}${payChip(o)}${o.status === "ready" ? '<span class="chip ready">Ready</span>' : ""}<span class="time">${time(o)}</span></div>
@@ -741,7 +762,7 @@ function ordersCard(st, emptyText) {
     <div class="h"><span>Orders<small>${all.length || ""}</small></span></div>
     <div class="card">${all.length ? all.map((o) => `
       <div class="row order-row" data-order="${o.id}"><div class="no" style="width:36px;height:36px;font-size:14px">${o.no}</div>
-      <div class="what"><b>${o.name ? esc(o.name) : "Order #" + o.no}</b><span>${describe(o)} · ${time(o)}</span></div>
+      <div class="what"><b>${o.name ? esc(o.name) : "Order #" + o.no}</b><span>${esc(describe(o))} · ${time(o)}</span></div>
       <div style="text-align:right"><div class="amt mono" ${o.cancelled ? 'style="text-decoration:line-through;color:var(--muted)"' : ""}>${naira(o.total)}</div>${o.cancelled ? '<span class="chip cancel">Cancelled</span>' : o.status !== "done" ? '<span class="chip old">Waiting</span>' : payChip(o)}</div></div>`).join("") : `<div class="empty" style="padding:24px 0">${emptyText}</div>`}</div>`;
 }
 function dayRow(key) {
@@ -761,7 +782,7 @@ function renderHome() {
     <div class="h"><span>Waiting<small>${waiting.length || ""}</small></span>${waiting.length ? '<button id="seeQueue">See all</button>' : ""}</div>
     <div class="card">${waiting.length ? waiting.slice(0, 3).map((o) => `
       <div class="row" data-goqueue><div class="no" style="width:36px;height:36px;font-size:14px">${o.no}</div>
-      <div class="what"><b>${o.name ? esc(o.name) : "Order #" + o.no}</b><span>${describe(o)}</span></div>
+      <div class="what"><b>${o.name ? esc(o.name) : "Order #" + o.no}</b><span>${esc(describe(o))}</span></div>
       <div style="text-align:right"><div class="amt mono">${naira(o.total)}</div>${oldTag(o) || (o.status === "ready" ? '<span class="chip ready">Ready</span>' : payChip(o))}</div></div>`).join("") : '<div class="empty" style="padding:22px 0">No one waiting</div>'}</div>
     <div class="h"><span>Past days</span>${past.length ? '<button id="seeHistory">See all</button>' : ""}</div>
     <div class="card">${past.length ? past.slice(0, 3).map(dayRow).join("") : '<div class="empty" style="padding:22px 0">Past days will show up here</div>'}</div>
@@ -834,7 +855,7 @@ function openOrder(id) {
   $("oTitle").textContent = o.name ? `${o.name} · #${o.no}` : `Order #${o.no}`;
   $("oWhen").textContent = `${dayName(o.day, true)}, ${time(o)}`;
   $("oItems").innerHTML = o.items.map((i) => `
-    <div class="row"><div class="thumb">${pic(i.id)}</div><div class="what"><b>${esc(i.name)}</b><span>${i.qty} × ${naira(i.price)}</span></div><div class="amt mono">${naira(i.cost)}</div></div>`).join("") +
+    <div class="row"><div class="thumb">${pic(i.id)}</div><div class="what"><b>${esc(i.name)}</b><span>${i.qty} × ${naira(i.price)}${i.for ? ` · <span class="for-tag">for ${esc(i.for)}</span>` : ""}</span></div><div class="amt mono">${naira(i.cost)}</div></div>`).join("") +
     `<div class="summary"><div class="total"><span>Total</span><span class="mono">${naira(o.total)}</span></div></div>`;
   $("oTags").innerHTML = `${payChip(o)}${status}`;
   $("oScrim").classList.add("open");
@@ -991,7 +1012,7 @@ document.querySelectorAll("nav button").forEach((b) => (b.onclick = () => show(b
 document.querySelectorAll("#payBtns button").forEach((b) => (b.onclick = () => { pay = pay === b.dataset.pay ? null : b.dataset.pay; refreshOrder(); }));
 $("custName").oninput = saveDraft;
 $("addOrder").onclick = addOrder;
-$("clearOrder").onclick = () => { cart = {}; refreshOrder(); };
+$("clearOrder").onclick = () => { cart = []; refreshOrder(); };
 $("showBank").onclick = showBank;
 $("closeBank").onclick = () => show("new");
 $("saveSettings").onclick = saveSettings;
@@ -1010,7 +1031,7 @@ show(TITLES[lastView] && lastView !== "bank" && lastView !== "day" ? lastView : 
 
 // Tell her when a newer version is online, so she doesn't need to close the app to get it.
 // APP_VERSION must match CACHE in sw.js; bump both together.
-const APP_VERSION = "lois-akara-v14";
+const APP_VERSION = "lois-akara-v15";
 async function checkForUpdate() {
   try {
     const text = await (await fetch("sw.js?check=" + Date.now(), { cache: "no-store" })).text();

@@ -1,6 +1,8 @@
-# Lois Akara
+# Mai Kosai
 
-A small order app for Lois's akara spot: take orders fast, keep the queue, and count the sales.
+*Northern Roots. Unforgettable Taste.*
+
+A small order app for Lois's akara (kosai) spot, Mai Kosai: take orders fast, keep the queue, and count the sales. (It started as "Lois Akara"; the web address keeps that name so the installed app keeps working.)
 
 Live: https://yilkash.github.io/lois-akara/
 
@@ -8,6 +10,7 @@ Live: https://yilkash.github.io/lois-akara/
 - **New order:** tap Akara, Puff-puff or Kunu Gyada. A panel with its own number pad opens:
   - Akara and puff-puff go by naira amount (₦300 → 6 akara, with any change shown) or by pieces.
   - Kunu goes by the cup.
+  - Tap the same item again to add a **separate pack** (e.g. two ₦500 akara instead of one ₦1,000), with an optional "Who is this pack for?" name. Tap a pack in the order to change or remove it.
   - Add the customer's name (optional) and the payment: cash, transfer or pay later.
 - **Queue:** numbered orders (from #1 each day) with Paid, Mark ready, Collected and Cancel. Orders not collected by midnight stay here with a "Yesterday" tag.
 - **Past days:** last 7 days or this month, with a bar per day, the best day, and a page for every day.

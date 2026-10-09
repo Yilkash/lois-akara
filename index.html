@@ -182,6 +182,14 @@
   .chip.unpaid { background: var(--warn-soft); color: var(--warn); }
   .chip.ready { background: var(--ok-soft); color: var(--ok); }
   .chip.cancel { background: var(--surface-2); color: var(--muted); }
+  .order-head .meta { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .packs { list-style: none; margin: 12px 0 0; padding: 10px 0 0; border-top: 1px dashed var(--line-2); display: grid; gap: 7px; }
+  .packs li { display: flex; align-items: center; gap: 4px; font-size: 15px; color: var(--ink); }
+  .packs li .for-tag { font-size: 13px; margin-left: 4px; }
+  .packs li .mono { margin-left: auto; color: var(--ink-2); font-size: 14px; }
+  .pay-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+  .pay-row .lbl { margin-left: auto; color: var(--muted); font-size: 13px; white-space: nowrap; }
+  .pay-row .btn { padding: 8px 14px; font-size: 14px; border-radius: 999px; white-space: nowrap; }
   .order-actions { display: flex; gap: 8px; margin-top: 12px; }
   .order-actions .btn { padding: 11px 10px; font-size: 14px; flex: 1; }
   .order-actions .icon { flex: 0 0 auto; width: 44px; padding: 0; display: grid; place-items: center; color: var(--muted); }
@@ -634,12 +642,9 @@ function addOrder() {
   cart = []; pay = null; $("custName").value = "";
   refreshOrder(); refreshHeader();
 }
-// Plain text; escape it before putting it into HTML. Several packs are numbered: "1. 10 akara · 2. 10 akara".
-// (Orders from v15 may carry a typed "for" name per pack; it is still shown.)
-const describe = (o) => {
-  const one = (i) => `${i.qty} ${i.name.toLowerCase()}${i.for ? ` (for ${i.for})` : ""}`;
-  return o.items.length > 1 ? o.items.map((i, n) => `${n + 1}. ${one(i)}`).join(" · ") : o.items.map(one).join("");
-};
+// Short plain-text summary for lists and the CSV; escape it before putting it into HTML.
+// The Queue shows the packs one per line, numbered. (Orders from v15 may carry a typed "for" name per pack.)
+const describe = (o) => o.items.map((i) => `${i.qty} ${i.name.toLowerCase()}${i.for ? ` (for ${i.for})` : ""}`).join(", ");
 const payChip = (o) => ({ cash: '<span class="chip cash">Cash</span>', transfer: '<span class="chip transfer">Transfer</span>', unpaid: '<span class="chip unpaid">Not paid</span>' }[o.pay]);
 const time = (o) => new Date(o.at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -656,12 +661,17 @@ function renderQueue() {
     <div class="order ${o.status === "ready" ? "ready" : ""}">
       <div class="order-head">
         <div class="no">${o.no}</div>
-        <div class="what"><b>${o.name ? esc(o.name) : "Order #" + o.no}</b><div>${esc(describe(o))}</div></div>
+        <div class="what"><b>${o.name ? esc(o.name) : "Order #" + o.no}</b><span class="meta">${time(o)}${o.day !== todayKey() ? ` · ${dayName(o.day)}` : ""}</span></div>
         <div class="amt mono">${naira(o.total)}</div>
       </div>
-      <div class="tags">${oldTag(o)}${payChip(o)}${o.status === "ready" ? '<span class="chip ready">Ready</span>' : ""}<span class="time">${time(o)}</span></div>
+      <ul class="packs">${o.items.map((i, n) => `
+        <li>${o.items.length > 1 ? `<span class="pack-no">${n + 1}</span>` : ""}<span>${i.qty} ${esc(i.name.toLowerCase())}</span>${i.for ? `<span class="for-tag">for ${esc(i.for)}</span>` : ""}<span class="mono">${naira(i.cost)}</span></li>`).join("")}
+      </ul>
+      ${o.pay === "unpaid"
+        ? `<div class="pay-row"><span class="chip unpaid">Not paid</span><span class="lbl">Paid by</span><button class="btn" data-a="cash" data-id="${o.id}">Cash</button><button class="btn" data-a="transfer" data-id="${o.id}">Transfer</button></div>`
+        : `<div class="tags">${payChip(o)}${o.status === "ready" ? '<span class="chip ready">Ready</span>' : ""}</div>`}
       <div class="order-actions">
-        ${o.pay === "unpaid" ? `<button class="btn" data-a="cash" data-id="${o.id}">Paid cash</button><button class="btn" data-a="transfer" data-id="${o.id}">Paid transfer</button>` : o.status === "waiting" ? `<button class="btn" data-a="ready" data-id="${o.id}">Mark ready</button>` : ""}
+        ${o.pay !== "unpaid" && o.status === "waiting" ? `<button class="btn" data-a="ready" data-id="${o.id}">Mark ready</button>` : ""}
         <button class="btn primary" data-a="done" data-id="${o.id}">Collected</button>
         <button class="btn icon" data-a="cancel" data-id="${o.id}" aria-label="Cancel order">${ICONS.x}</button>
       </div>
@@ -1035,7 +1045,7 @@ show(TITLES[lastView] && lastView !== "bank" && lastView !== "day" ? lastView : 
 
 // Tell her when a newer version is online, so she doesn't need to close the app to get it.
 // APP_VERSION must match CACHE in sw.js; bump both together.
-const APP_VERSION = "lois-akara-v16";
+const APP_VERSION = "lois-akara-v17";
 async function checkForUpdate() {
   try {
     const text = await (await fetch("sw.js?check=" + Date.now(), { cache: "no-store" })).text();

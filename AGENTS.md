@@ -29,6 +29,7 @@ The shop's brand is **Mai Kosai** ("Northern Roots. Unforgettable Taste."), rena
 - Confirmations use the app's own `ask()` box. Never use `confirm()` or `alert()`; the owner explicitly asked for that.
 - Keep the SVG drawings as the default pictures. Stock food photos were tried and rejected.
 - Light mode is the default; dark mode is opt-in.
+- Queue cards list each pack on its own numbered line with its price; unpaid orders show "Not paid · Paid by [Cash] [Transfer]" on one line, then a wide Collected button. Lists elsewhere use the short `describe()` summary.
 - Sales totals (home, a day, past days) count **money received** (cash + transfer). Unpaid orders show separately as "Not paid yet" until marked paid; cancelled orders never count. The ₦ change shown in the amount sheet is never recorded; an order stores only the items' cost.
 - Order numbers restart at #1 each day (`nextNumber`). Past days are read-only, except that any order can be deleted (with confirmation).
 - The owner wants a plan described before anything is built.
@@ -52,5 +53,4 @@ To test the update banner, route `sw.js?check=…` to a higher version.
 
 ## Ideas not done yet
 
-- Shorten "Paid cash" and "Paid transfer" in the Queue so they fit on one line.
 - Customer self-ordering by QR. This would need a backend.

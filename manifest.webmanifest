@@ -1,14 +1,23 @@
 {
-  "name": "Lois Akara",
-  "short_name": "Lois Akara",
-  "description": "Take orders, keep the queue and count the day's sales.",
+  "name": "Mai Kosai",
+  "short_name": "Mai Kosai",
+  "description": "Mai Kosai: take orders, keep the queue and count the day's sales.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#fbf6ef",
-  "theme_color": "#7a3e12",
+  "background_color": "#faeed6",
+  "theme_color": "#4d1b0b",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }

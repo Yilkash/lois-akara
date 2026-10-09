@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Lois Akara</title>
-<meta name="description" content="Take orders, keep the queue and count the day's sales at Lois's akara spot." />
-<meta name="theme-color" content="#faf5ee" id="themeColor" />
+<title>Mai Kosai</title>
+<meta name="description" content="Mai Kosai: take orders, keep the queue and count the day's sales. Northern Roots. Unforgettable Taste." />
+<meta name="theme-color" content="#faf3e6" id="themeColor" />
 <script>try { if (localStorage.getItem("loisAkara.theme") === "dark") document.documentElement.dataset.theme = "dark"; const l = localStorage.getItem("loisAkara.look"); if (l) document.documentElement.dataset.look = l; } catch {}</script>
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" href="icon-192.png" />
@@ -15,10 +15,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --bg: #faf5ee; --surface: #ffffff; --surface-2: #f5ece0; --ink: #22170e; --ink-2: #5d4a39; --muted: #9a8775;
-    --line: #f0e7dc; --line-2: #e6d9c8; --brand: #8a4a17; --brand-ink: #ffffff; --accent: #e9962f; --thumb: #fdefd9;
+    /* Mai Kosai: cream, deep brown and gold from her logo. */
+    --bg: #faf3e6; --surface: #ffffff; --surface-2: #f6ead3; --ink: #2b1308; --ink-2: #5e3a26; --muted: #9a7f68;
+    --line: #f1e5d0; --line-2: #e7d5b8; --brand: #5a230c; --brand-ink: #ffffff; --accent: #e3a520; --thumb: #fbeccc;
     --ok: #17804b; --ok-soft: #e4f3ea; --blue: #2364aa; --blue-soft: #e5eef9; --warn: #c2412d; --warn-soft: #fbe8e3;
-    --hero-a: #7a3d10; --hero-b: #c0701f; --hero-ink: #ffffff;
+    --hero-a: #4d1b0b; --hero-b: #7d3a15; --hero-ink: #ffffff;
     --scrim: rgba(40,22,6,.35);
     --shadow: 0 1px 2px rgba(80,45,10,.05), 0 4px 14px rgba(80,45,10,.05);
   }
@@ -269,7 +270,7 @@
 <div class="wrap">
   <header>
     <div class="top">
-      <div class="title-wrap"><button class="round hidden" id="backBtn" aria-label="Back"></button><div><div class="hello" id="hello">Good day</div><div class="shop" id="pageTitle">New order</div></div></div>
+      <div class="title-wrap"><button class="round hidden" id="backBtn" aria-label="Back"></button><img class="brand-logo hidden" id="brandLogo" src="logo.png" alt="Mai Kosai logo" width="52" height="52" /><div><div class="hello" id="hello">Good day</div><div class="shop" id="pageTitle">New order</div><div class="tagline hidden" id="tagline">Northern Roots. Unforgettable Taste.</div></div></div>
       <div class="head-right">
         <button class="round" id="themeBtn" aria-label="Turn on dark mode"></button>
       </div>
@@ -415,7 +416,7 @@
 <button class="update hidden" id="updateBar"><span>New version ready</span><b>Tap to update</b></button>
 
 <script>
-// Lois Akara: order taking, queue and daily totals. Everything is stored on this phone.
+// Mai Kosai (formerly Lois Akara): order taking, queue and daily totals. Everything is stored on this phone.
 const ICONS = {
   plus: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M12 8v8M8 12h8"/></svg>',
   list: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>',
@@ -450,7 +451,7 @@ const todayKey = () => new Date().toLocaleDateString("en-CA");
 const $ = (id) => document.getElementById(id);
 
 const DEFAULTS = {
-  shop: "Lois Akara",
+  shop: "Mai Kosai",
   bank: { name: "Lois Nanji Miri", bank: "PalmPay", number: "" },
   items: [
     { id: "akara", name: "Akara", price: 50, unit: ["akara", "akara"], byAmount: true, chips: [100, 200, 300, 500, 1000] },
@@ -466,7 +467,8 @@ try { navigator.storage?.persist?.(); } catch {}
 let settings = load("loisAkara.settings", DEFAULTS);
 // Keep her prices and bank details; take everything else (names, units) from the current defaults.
 settings = {
-  shop: settings.shop || DEFAULTS.shop,
+  // The shop was renamed from "Lois Akara" to her brand "Mai Kosai"; a name she typed herself is kept.
+  shop: !settings.shop || settings.shop === "Lois Akara" ? DEFAULTS.shop : settings.shop,
   bank: { ...DEFAULTS.bank, ...(settings.bank || {}) },
   items: DEFAULTS.items.map((d) => ({ ...d, price: (settings.items || []).find((x) => x.id === d.id)?.price || d.price })),
 };
@@ -605,7 +607,7 @@ function addOrder() {
     id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
     day: todayKey(), no: nextNumber(), at: new Date().toISOString(),
     name: $("custName").value.trim(),
-    items: lines.map((l) => ({ id: l.it.id, name: l.it.name, qty: l.qty, price: l.it.price, cost: l.cost })),
+    items: lines.map((l) => ({ id: l.it.id, name: l.it.name, qty: l.qty, price: l.it.price, cost: l.cost, ...(l.for ? { for: l.for } : {}) })),
     total: lines.reduce((s, l) => s + l.cost, 0),
     pay: pay || "unpaid", status: "waiting",
   };
@@ -911,13 +913,13 @@ function exportCsv() {
   const csv = rows.map((r) => r.map((c) => `"${String(c ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-  a.download = `lois-akara-orders-${todayKey()}.csv`;
+  a.download = `mai-kosai-orders-${todayKey()}.csv`;
   a.click();
 }
 let toastTimer;
 function toast(html) { const t = $("toast"); t.innerHTML = html; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 1900); }
 
-const TITLES = { home: "Lois Akara", new: "New order", queue: "Queue", settings: "Settings", bank: "Transfer", history: "Past days", day: "Day" };
+const TITLES = { home: "Mai Kosai", new: "New order", queue: "Queue", settings: "Settings", bank: "Transfer", history: "Past days", day: "Day" };
 let current = "home";
 function refreshHeader() {
   const h = new Date().getHours();
@@ -937,6 +939,8 @@ function show(view) {
   document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("on", b.dataset.view === tab));
   $("backBtn").classList.toggle("hidden", view !== "history" && view !== "day");
   $("pageTitle").textContent = view === "home" ? settings.shop : TITLES[view];
+  $("brandLogo").classList.toggle("hidden", view !== "home");
+  $("tagline").classList.toggle("hidden", view !== "home");
   if (view === "queue") renderQueue();
   if (view === "home") renderHome();
   if (view === "settings") renderSettings();
@@ -949,7 +953,7 @@ function show(view) {
 
 // Colour styles for light mode, chosen in Settings and remembered on this phone.
 const LOOKS = [
-  { id: "warm", name: "Warm brown", c: ["#8a4a17", "#faf5ee"] },
+  { id: "warm", name: "Mai Kosai", c: ["#5a230c", "#e3a520"] },
   { id: "clean", name: "Clean white", c: ["#14161b", "#ffffff"] },
   { id: "green", name: "Fresh green", c: ["#0e7a4b", "#f4f7f4"] },
   { id: "orange", name: "Bright orange", c: ["#f2620f", "#fff8f2"] },
@@ -970,7 +974,7 @@ function renderLooks() {
 // Light by default; dark only when she turns it on. Remembered on this phone.
 function applyTheme(dark) {
   if (dark) document.documentElement.dataset.theme = "dark"; else delete document.documentElement.dataset.theme;
-  $("themeColor").content = dark ? "#14100c" : "#faf5ee";
+  $("themeColor").content = dark ? "#14100c" : "#faf3e6";
   $("themeBtn").innerHTML = dark ? ICONS.sun : ICONS.moon;
   $("themeBtn").setAttribute("aria-label", dark ? "Turn off dark mode" : "Turn on dark mode");
   $("darkSwitch").classList.toggle("on", dark);

@@ -13,12 +13,13 @@ The shop's brand is **Mai Kosai** ("Northern Roots. Unforgettable Taste."), rena
   - `logo.png`: the round logo shown on the home header.
 - Hosted on GitHub Pages from `main` of `Yilkash/lois-akara`. A push deploys in about a minute.
 - There is no backend. Everything lives in the phone's `localStorage`:
-  - `loisAkara.orders`: an array of `{id, day: "YYYY-MM-DD", no, at, name, items:[{id,name,qty,price,cost,for?}], total, pay: cash|transfer|unpaid, status: waiting|ready|done, cancelled?, doneAt?}`.
+  - `loisAkara.orders`: an array of `{id, day: "YYYY-MM-DD", no, at, name, items:[{id,name,qty,price,cost,for?}], total, pay: cash|transfer|unpaid, status: waiting|ready|done, cancelled?, doneAt?, paidAt?, cancelledAt?}`. `paidAt` and `cancelledAt` exist from v18 on; older orders lack them.
   - `loisAkara.settings`: `{shop, bank:{name,bank,number}, items:[{id,price}]}`. Item names and units come from `DEFAULTS` in code; only prices are kept from storage.
   - `loisAkara.draft`: the order being built: `{cart: [{key, id, qty, for}], pay, name}`. The same item can be in the cart more than once: separate packs for the same customer, shown numbered 1, 2, 3 (e.g. two ₦500 akara instead of one ₦1,000). `for` is always empty now; v15 briefly let her type a per-pack name, and orders saved then still show it. Drafts from before v15 stored `cart` as `{itemId: qty}`; they are converted on load.
   - `loisAkara.view` and `loisAkara.period`: the tab and Past-days period last opened.
   - `loisAkara.theme`: `dark` or `light`.
   - `loisAkara.look`: the colour style: `warm` (default, shown as "Mai Kosai": cream, deep brown and gold), `clean`, `green`, `orange`, `gold` or `pink`.
+  - `loisAkara.hideMoney`: `"1"` when she has hidden the figures on the home money card (eye button).
   - `loisAkara.photos`: her own item photos as small JPEG data URLs. Without them the app uses the SVG drawings in `ART`.
 - **Never rename or reshape these keys without a migration.** The live app holds real sales on her phone, and an update must not lose them.
 - The bank account number is never in the code. She types it in Settings.
@@ -29,6 +30,7 @@ The shop's brand is **Mai Kosai** ("Northern Roots. Unforgettable Taste."), rena
 - Confirmations use the app's own `ask()` box. Never use `confirm()` or `alert()`; the owner explicitly asked for that.
 - Keep the SVG drawings as the default pictures. Stock food photos were tried and rejected.
 - Light mode is the default; dark mode is opt-in.
+- Home (v18, OPay-style layout in her colours): a compact "Money in today" card with an eye button to hide figures, a "Not paid yet" button to the Queue and a New order button; a latest-activity line (added, paid, collected or cancelled) with "Orders ›" scrolling to today's orders; then round shortcuts for New order, Queue, Past days and Bank details.
 - Queue cards list each pack on its own numbered line with its price; unpaid orders show "Not paid · Paid by [Cash] [Transfer]" on one line, then a wide Collected button. Lists elsewhere use the short `describe()` summary.
 - Sales totals (home, a day, past days) count **money received** (cash + transfer). Unpaid orders show separately as "Not paid yet" until marked paid; cancelled orders never count. The ₦ change shown in the amount sheet is never recorded; an order stores only the items' cost.
 - Order numbers restart at #1 each day (`nextNumber`). Past days are read-only, except that any order can be deleted (with confirmation).

@@ -202,6 +202,25 @@
   .hero .cols { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.12); }
   .hero .cols div + div { border-left: 1px solid rgba(255,255,255,.12); padding-left: 12px; }
   .hero .cols b { display: block; font-size: 15px; font-weight: 600; margin-top: 2px; }
+  /* Home: compact money card, latest activity and round shortcuts (OPay-style layout, her colours). */
+  .wallet { background: linear-gradient(140deg, var(--hero-a), var(--hero-b)); color: var(--hero-ink); border-radius: 18px; padding: 16px 18px; margin-top: 14px; }
+  .wallet-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .wallet .lbl { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; opacity: .85; }
+  .wallet .eye { border: 0; background: none; color: inherit; padding: 4px; opacity: .85; display: grid; place-items: center; }
+  .wallet .add { display: flex; align-items: center; gap: 6px; border: 1px solid rgba(255,255,255,.35); background: rgba(255,255,255,.14); color: inherit; border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 600; }
+  .wallet .add svg { width: 16px; height: 16px; }
+  .wallet .num { font-size: 34px; font-weight: 500; margin: 6px 0 2px; }
+  .wallet .owed { border: 0; cursor: pointer; }
+  .wallet .mini { font-size: 12px; opacity: .7; margin-top: 10px; }
+  .latest { display: flex; align-items: center; gap: 8px; padding: 12px 4px 4px; font-size: 13px; color: var(--ink-2); }
+  .latest .dot-ic { color: var(--ok); flex-shrink: 0; }
+  .latest .dot-ic.bad { color: var(--muted); }
+  .latest .txt { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .latest button { border: 0; background: none; padding: 0; color: var(--ink); font-weight: 600; font-size: 13px; white-space: nowrap; }
+  .shortcuts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 14px 6px; margin-top: 10px; }
+  .sc { position: relative; border: 0; background: none; display: grid; justify-items: center; gap: 8px; font-size: 12.5px; font-weight: 500; color: var(--ink); padding: 0; }
+  .sc .ic { width: 52px; height: 52px; border-radius: 16px; background: var(--thumb); color: var(--brand); display: grid; place-items: center; }
+  .sc .badge { position: absolute; top: -4px; left: calc(50% + 14px); min-width: 20px; padding: 1px 6px; border-radius: 999px; background: var(--warn); color: #fff; font-size: 11px; font-weight: 700; }
   .start { width: 100%; border: 0; border-radius: 18px; background: var(--brand); color: var(--brand-ink); padding: 16px; display: flex; align-items: center; gap: 14px; text-align: left; margin-top: 14px; box-shadow: 0 8px 20px color-mix(in srgb, var(--brand) 25%, transparent); }
   .start .plus { width: 44px; height: 44px; border-radius: 12px; background: rgba(255,255,255,.16); display: grid; place-items: center; }
   .start > span:nth-child(2) { flex: 1; }
@@ -432,6 +451,14 @@
 <script>
 // Mai Kosai (formerly Lois Akara): order taking, queue and daily totals. Everything is stored on this phone.
 const ICONS = {
+  eye: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>',
+  eyeOff: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18M10.6 5.1A10.6 10.6 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6C3.9 8.4 2 12 2 12s3.6 7 10 7a9.8 9.8 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>',
+  queue: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg>',
+  calendar: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+  bank: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10 12 4l9 6M5 10v8M10 10v8M14 10v8M19 10v8M3 21h18"/></svg>',
+  order: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"/><path d="M9 8h6M9 12h6"/></svg>',
+  checkCircle: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>',
+  xCircle: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m9 9 6 6M15 9l-6 6"/></svg>',
   plus: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M12 8v8M8 12h8"/></svg>',
   list: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>',
   home: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>',
@@ -704,7 +731,7 @@ async function act(id, action) {
   const o = orders.find((x) => x.id === id);
   if (!o) return;
   const who = o.name ? `${o.name}'s order (#${o.no})` : `Order #${o.no}`;
-  if (action === "cash" || action === "transfer") o.pay = action;
+  if (action === "cash" || action === "transfer") { o.pay = action; o.paidAt = new Date().toISOString(); }
   if (action === "ready") o.status = "ready";
   if (action === "done") {
     if (o.pay === "unpaid" && !(await ask({ title: "Not paid yet", text: `${who} hasn't been paid for (${naira(o.total)}). Mark it as collected anyway?`, yes: "Yes, collected" }))) return;
@@ -712,7 +739,7 @@ async function act(id, action) {
   }
   if (action === "cancel") {
     if (!(await ask({ title: "Cancel this order?", text: `${who}: ${describe(o)}, ${naira(o.total)}. It won't count in today's sales.`, yes: "Cancel order", no: "Keep it", danger: true, icon: "x" }))) return;
-    o.status = "done"; o.cancelled = true;
+    o.status = "done"; o.cancelled = true; o.cancelledAt = new Date().toISOString();
     toast(`Order #${o.no} cancelled`);
   }
   save("loisAkara.orders", orders);
@@ -784,14 +811,52 @@ function dayRow(key) {
 }
 const wireDays = (box) => box.querySelectorAll("[data-day]").forEach((r) => (r.onclick = () => openDay(r.dataset.day)));
 
+// Hide the day's figures on the home card when customers can see the phone. Remembered on this phone.
+let hideMoney = false;
+try { hideMoney = localStorage.getItem("loisAkara.hideMoney") === "1"; } catch {}
+const money = (n) => (hideMoney ? "₦ ••••" : naira(n));
+// The most recent thing that happened today: an order added, paid, collected or cancelled.
+function latestEvent() {
+  const who = (o) => (o.name ? o.name : `Order #${o.no}`);
+  const ev = [];
+  for (const o of orders.filter((x) => x.day === todayKey())) {
+    ev.push({ at: o.at, ok: true, text: `Order #${o.no} added · ${money(o.total)} · ${{ cash: "Cash", transfer: "Transfer", unpaid: "Not paid" }[o.pay]}` });
+    if (o.paidAt) ev.push({ at: o.paidAt, ok: true, text: `${who(o)} paid ${money(o.total)} · ${o.pay === "cash" ? "Cash" : "Transfer"}` });
+    if (o.doneAt && !o.cancelled) ev.push({ at: o.doneAt, ok: true, text: `${who(o)} collected their order` });
+    if (o.cancelled) ev.push({ at: o.cancelledAt || o.at, ok: false, text: `${who(o)}'s order was cancelled` });
+  }
+  return ev.sort((a, b) => (a.at < b.at ? 1 : -1))[0] || null;
+}
+function walletCard(st, waitingCount) {
+  const last = latestEvent();
+  return `
+    <div class="wallet">
+      <div class="wallet-top">
+        <span class="lbl">Money in today <button class="eye" id="eyeBtn" aria-label="${hideMoney ? "Show amounts" : "Hide amounts"}">${hideMoney ? ICONS.eyeOff : ICONS.eye}</button></span>
+        <button class="add" id="startOrder">${ICONS.plus} New order</button>
+      </div>
+      <div class="num mono">${money(st.total)}</div>
+      ${st.unpaid ? `<button class="owed" id="owedBtn">Not paid yet: <span class="mono">${money(st.unpaid)}</span> ›</button>` : ""}
+      <div class="mini">${st.list.length} order${st.list.length === 1 ? "" : "s"} · Cash ${money(st.cash)} · Transfer ${money(st.transfer)}</div>
+    </div>
+    <div class="latest">
+      <span class="dot-ic ${last && !last.ok ? "bad" : ""}">${last && !last.ok ? ICONS.xCircle : ICONS.checkCircle}</span>
+      <span class="txt">${last ? esc(last.text) : "No orders yet today"}</span>
+      <button id="latestOrders">Orders ›</button>
+    </div>
+    <div class="card shortcuts">
+      <button class="sc" data-sc="new"><span class="ic">${ICONS.order}</span>New order</button>
+      <button class="sc" data-sc="queue"><span class="ic">${ICONS.queue}</span>Queue${waitingCount ? `<span class="badge">${waitingCount}</span>` : ""}</button>
+      <button class="sc" data-sc="history"><span class="ic">${ICONS.calendar}</span>Past days</button>
+      <button class="sc" data-sc="bank"><span class="ic">${ICONS.bank}</span>Bank details</button>
+    </div>`;
+}
 function renderHome() {
   const st = dayStats(todayKey());
   const waiting = waitingOrders();
   const past = daysWithOrders().filter((d) => d !== todayKey());
   $("homeBody").innerHTML = `
-    <button class="start" id="startOrder"><span class="plus">${ICONS.plus}</span><span><b>New order</b><small>Order #${nextNumber()} is next</small></span>${ICONS.chev}</button>
-    <div class="h">Today</div>
-    ${salesCard(st, "Money in")}
+    ${walletCard(st, waiting.length)}
     <div class="h"><span>Waiting<small>${waiting.length || ""}</small></span>${waiting.length ? '<button id="seeQueue">See all</button>' : ""}</div>
     <div class="card">${waiting.length ? waiting.slice(0, 3).map((o) => `
       <div class="row" data-goqueue><div class="no" style="width:36px;height:36px;font-size:14px">${o.no}</div>
@@ -800,8 +865,13 @@ function renderHome() {
     <div class="h"><span>Past days</span>${past.length ? '<button id="seeHistory">See all</button>' : ""}</div>
     <div class="card">${past.length ? past.slice(0, 3).map(dayRow).join("") : '<div class="empty" style="padding:22px 0">Past days will show up here</div>'}</div>
     ${soldCard(st, "Sold today")}
-    ${ordersCard(st, "No orders yet today")}`;
+    <div id="todayOrders">${ordersCard(st, "No orders yet today")}</div>`;
   $("startOrder").onclick = () => show("new");
+  $("eyeBtn").onclick = () => { hideMoney = !hideMoney; try { localStorage.setItem("loisAkara.hideMoney", hideMoney ? "1" : ""); } catch {} renderHome(); };
+  $("owedBtn") && ($("owedBtn").onclick = () => show("queue"));
+  // Today's orders are listed further down this page.
+  $("latestOrders").onclick = () => $("todayOrders").scrollIntoView({ behavior: "smooth", block: "start" });
+  $("homeBody").querySelectorAll("[data-sc]").forEach((b) => (b.onclick = () => (b.dataset.sc === "bank" ? showBank() : show(b.dataset.sc))));
   $("seeQueue") && ($("seeQueue").onclick = () => show("queue"));
   $("seeHistory") && ($("seeHistory").onclick = () => show("history"));
   $("homeBody").querySelectorAll("[data-goqueue]").forEach((r) => (r.onclick = () => show("queue")));
@@ -939,7 +1009,9 @@ function showBank() {
   $("bAcct").textContent = settings.bank.number ? settings.bank.number.replace(/(\d{3})(\d{3})(\d+)/, "$1 $2 $3") : "Add in Settings";
   $("bName").textContent = settings.bank.name;
   $("bBank").textContent = settings.bank.bank;
-  $("bAmount").textContent = naira(cartLines().reduce((s, l) => s + l.cost, 0));
+  const due = cartLines().reduce((s, l) => s + l.cost, 0);
+  $("bAmount").textContent = naira(due);
+  $("bAmount").parentElement.classList.toggle("hidden", !due);
   show("bank");
 }
 function exportCsv() {
@@ -1028,7 +1100,7 @@ $("custName").oninput = saveDraft;
 $("addOrder").onclick = addOrder;
 $("clearOrder").onclick = () => { cart = []; refreshOrder(); };
 $("showBank").onclick = showBank;
-$("closeBank").onclick = () => show("new");
+$("closeBank").onclick = () => show(previous === "home" ? "home" : "new");
 $("saveSettings").onclick = saveSettings;
 $("exportCsv").onclick = exportCsv;
 $("themeBtn").onclick = toggleTheme;
@@ -1045,7 +1117,7 @@ show(TITLES[lastView] && lastView !== "bank" && lastView !== "day" ? lastView : 
 
 // Tell her when a newer version is online, so she doesn't need to close the app to get it.
 // APP_VERSION must match CACHE in sw.js; bump both together.
-const APP_VERSION = "lois-akara-v17";
+const APP_VERSION = "lois-akara-v18";
 async function checkForUpdate() {
   try {
     const text = await (await fetch("sw.js?check=" + Date.now(), { cache: "no-store" })).text();
